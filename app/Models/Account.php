@@ -58,4 +58,15 @@ class Account extends Authenticatable
                     ->withPivot('role')
                     ->withTimestamps();
     }
+
+    public function sentMessages()
+    {
+        return $this->hasMany(DirectMessage::class, 'sender_id');
+    }
+
+    // Pesan yang diterima oleh akun ini
+    public function receivedMessages()
+    {
+        return $this->hasMany(DirectMessage::class, 'receiver_id');
+    }
 }
