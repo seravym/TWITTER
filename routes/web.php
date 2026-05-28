@@ -8,9 +8,7 @@ Route::get('/', function () {
     return redirect('/posts');
 });
 
-/*
-| GUEST (belum login)
-*/
+
 Route::middleware('guest')->group(function () {
     Route::get('/register', [AuthController::class, 'showRegister']);
     Route::post('/register', [AuthController::class, 'register']);
@@ -19,14 +17,12 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 });
 
-/*
-| LOGOUT (harus login)
-*/
 Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth');
 
-/*
-| POSTS (harus login semua)
-*/
 Route::resource('posts', PostController::class)
     ->middleware('auth');
+
+Route::post('/posts/{post}/like', [PostController::class, 'like'])
+    ->middleware('auth')
+    ->name('posts.like');
