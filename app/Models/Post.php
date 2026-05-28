@@ -8,11 +8,11 @@ use App\Models\Like;
 
 class Post extends Model
 {
-    protected $fillable = ['user_id', 'content'];
+    protected $fillable = ['account_id', 'content']; 
 
-    public function user()
+    public function account()
     {
-        return $this->belongsTo(Account::class, 'user_id');
+        return $this->belongsTo(Account::class, 'account_id');
     }
 
     public function likes()

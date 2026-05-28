@@ -11,14 +11,8 @@ class PostController extends Controller
 {
     public function index()
     {
-        $posts = Post::with(['user', 'likes'])->latest()->get();
-
-        return view('posts.index', compact('posts'));
-    }
-
-    public function create()
-    {
-        return view('posts.create');
+    $posts = Post::with(['account', 'likes'])->latest()->get();
+    return view('welcome', compact('posts'));
     }
 
     public function store(Request $request)
@@ -28,25 +22,32 @@ class PostController extends Controller
         ]);
 
         Post::create([
-            'user_id' => Auth::id(),
+            'account_id' => Auth::id(), // UBAH ke account_id
             'content' => $request->content
         ]);
 
-        return redirect()->route('posts.index');
+        return redirect()->route('posts.index')->with('success', 'Post berhasil dibuat!');
     }
 
-    public function show(Post $post)
-    {
-        return view('posts.show', compact('post'));
-    }
+    // ... method show() tetap sama ...
 
     public function edit(Post $post)
     {
+        // UBAH: cek menggunakan account_id
+        if (Auth::id() !== $post->account_id) {
+            abort(403, 'Anda tidak berhak mengedit postingan ini.');
+        }
+
         return view('posts.edit', compact('post'));
     }
 
     public function update(Request $request, Post $post)
     {
+        // UBAH: cek menggunakan account_id
+        if (Auth::id() !== $post->account_id) {
+            abort(403, 'Anda tidak berhak mengubah postingan ini.');
+        }
+
         $request->validate([
             'content' => 'required|string'
         ]);
@@ -55,14 +56,18 @@ class PostController extends Controller
             'content' => $request->content
         ]);
 
-        return redirect()->route('posts.index');
+        return redirect()->route('posts.index')->with('success', 'Post berhasil diperbarui!');
     }
 
     public function destroy(Post $post)
     {
-        $post->delete();
+        // UBAH: cek menggunakan account_id
+        if (Auth::id() !== $post->account_id) {
+            abort(403, 'Anda tidak berhak menghapus postingan ini.');
+        }
 
-        return redirect()->route('posts.index');
+        $post->delete();
+        return redirect()->route('posts.index')->with('success', 'Post berhasil dihapus!');
     }
 
     /*
@@ -71,11 +76,9 @@ class PostController extends Controller
     public function like(Post $post)
     {
         $accountId = Auth::id();
-
         $like = Like::where('account_id', $accountId)
             ->where('post_id', $post->id)
             ->first();
-
         if ($like) {
             // unlike
             $like->delete();
@@ -86,7 +89,6 @@ class PostController extends Controller
                 'post_id' => $post->id
             ]);
         }
-
         return back();
     }
 }
