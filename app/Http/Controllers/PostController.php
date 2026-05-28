@@ -11,7 +11,10 @@ class PostController extends Controller
 {
     public function index()
     {
-        $posts = Post::with(['user', 'likes'])->latest()->get();
+        $posts = Post::with(['user', 'likes'])
+            ->withCount('likes')
+            ->latest()
+            ->get();
 
         return view('posts.index', compact('posts'));
     }
@@ -66,7 +69,7 @@ class PostController extends Controller
     }
 
     /*
-    | LIKE / UNLIKE TOGGLE
+    | LIKE TOGGLE
     */
     public function like(Post $post)
     {
@@ -77,10 +80,8 @@ class PostController extends Controller
             ->first();
 
         if ($like) {
-            // unlike
             $like->delete();
         } else {
-            // like
             Like::create([
                 'account_id' => $accountId,
                 'post_id' => $post->id
