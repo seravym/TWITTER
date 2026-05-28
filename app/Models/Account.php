@@ -47,18 +47,6 @@ class Account extends Authenticatable
         ];
     }
 
-    public function ownedCommunity()
-    {
-        return $this->hasMany(Community::class, 'creator_id');
-    }
-
-    public function joinedCommunities()
-    {
-        return $this->belongsToMany(Community::class, 'community_user', 'account_id', 'community_id')
-                    ->withPivot('role')
-                    ->withTimestamps();
-    }
-
     public function sentMessages()
     {
         return $this->hasMany(DirectMessage::class, 'sender_id');
