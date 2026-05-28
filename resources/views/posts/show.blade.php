@@ -1,0 +1,6 @@
+ini contoh yg show
+<h1>{{ $post->title }}</h1>
+
+<p>{{ $post->content }}</p>
+
+<a href="{{ route('posts.index') }}">Kembali</a>
