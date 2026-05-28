@@ -16,7 +16,7 @@
 
             {{-- USER --}}
             <small>
-                dibuat oleh user #{{ $post->user_id }}
+                dibuat oleh user #{{ $post->accounts->name }}
             </small>
 
             <br><br>
