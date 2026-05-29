@@ -22,6 +22,8 @@
             <li><a href="/accounts">Lihat Semua Pengguna</a></li>
             <li><a href="/posts">Lihat Semua Postingan</a></li>
             <li><a href="/messages">Direct Messages</a></li>
+            <li><a href="/comments">Komentar Saya</a></li>
+            <li><a href="/follows">Following Saya</a></li>
         </ul>
         
         <form action="/logout" method="POST" style="display: inline;">
@@ -83,6 +85,17 @@
                             <button type="submit" onclick="return confirm('Yakin ingin menghapus?')">Hapus</button>
                         </form>
                     @endif
+
+                    @auth
+                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc;">
+                        <form action="/comments" method="POST">
+                            @csrf
+                            <input type="hidden" name="post_id" value="{{ $post->id }}">
+                            <input type="text" name="content" placeholder="Tulis komentar..." required style="width: 60%; padding: 2px;">
+                            <button type="submit">Kirim</button>
+                        </form>
+                    </div>
+                    @endauth
                 </div>
             @endforeach
         @endif

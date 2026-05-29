@@ -4,6 +4,8 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DirectMessageController;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\FollowController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PostController::class, 'index'])->middleware('auth');
@@ -26,6 +28,16 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('posts', PostController::class);
     Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like');
+
+    // Fitur Comment
+    Route::get('/comments', [CommentController::class, 'index']);
+    Route::post('/comments', [CommentController::class, 'store']);
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
+
+    // Fitur Follow
+    Route::get('/follows', [FollowController::class, 'index']);
+    Route::post('/follows', [FollowController::class, 'store']);
+    Route::delete('/follows/{id}', [FollowController::class, 'destroy']);
 
     Route::prefix('messages')->group(function () {
         Route::get('/', [DirectMessageController::class, 'index'])->name('messages.index');
