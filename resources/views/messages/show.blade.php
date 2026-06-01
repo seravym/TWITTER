@@ -112,7 +112,6 @@
         }
 
         .bubble {
-            max-width: 70%;
             padding: 10px 16px;
             border-radius: 20px;
             font-size: 15px;
@@ -158,6 +157,7 @@
         .bubble-wrapper {
             display: flex;
             flex-direction: column;
+            max-width: 70%;
         }
 
         .bubble-row.mine .bubble-wrapper {
@@ -293,7 +293,7 @@
 
         <div class="header-info">
             <div class="header-name">{{ $other->name }}</div>
-            <div class="header-username">@{{ $other->username }}</div>
+            <div class="header-username">{{ '@' . $other->username }}</div>
         </div>
     </div>
 
