@@ -254,7 +254,7 @@
                             <div class="convo-top">
                                 <div>
                                     <span class="convo-name">{{ $convo['account']->name }}</span>
-                                    <span class="convo-username"> @{{ $convo['account']->username }}</span>
+                                    <span class="convo-username"> {{ '@' . $convo['account']->username }}</span>
                                 </div>
                                 <span class="convo-time">{{ $convo['last_message']->created_at->diffForHumans() }}</span>
                             </div>
