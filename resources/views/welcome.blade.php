@@ -86,16 +86,28 @@
                         </form>
                     @endif
 
-                    @auth
                     <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc;">
+                        
+                        @if($post->comments->count() > 0)
+                            <div style="margin-bottom: 10px;">
+                                @foreach($post->comments as $comment)
+                                    <p style="margin: 5px 0; font-size: 0.9em; background: #f1f1f1; padding: 5px; border-radius: 5px;">
+                                        <strong>{{ $comment->account->name ?? 'Anonim' }}</strong>: {{ $comment->content }}
+                                    </p>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        @auth
                         <form action="/comments" method="POST">
                             @csrf
                             <input type="hidden" name="post_id" value="{{ $post->id }}">
                             <input type="text" name="content" placeholder="Tulis komentar..." required style="width: 60%; padding: 2px;">
                             <button type="submit">Kirim</button>
                         </form>
+                        @endauth
+
                     </div>
-                    @endauth
                 </div>
             @endforeach
         @endif
