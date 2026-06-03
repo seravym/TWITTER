@@ -17,6 +17,12 @@
     <p><strong>Email:</strong> {{ $account->email }}</p>
     <p><strong>Bio:</strong> {{ $account->bio ?? 'Belum ada bio.' }}</p>
 
+    <p style="background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; display: inline-block;">
+        <strong>Followers:</strong> {{ $account->followers()->count() }} | 
+        <strong>Following:</strong> {{ $account->following()->count() }}
+    </p>
+    <br><br>
+
     @if(Auth::id() === $account->id)
         <a href="/accounts/{{ $account->id }}/edit"><button>Edit Profil Anda</button></a>
     @endif

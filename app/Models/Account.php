@@ -52,13 +52,12 @@ class Account extends Authenticatable
         return $this->hasMany(DirectMessage::class, 'sender_id');
     }
 
-    // Pesan yang diterima oleh akun ini
     public function receivedMessages()
     {
         return $this->hasMany(DirectMessage::class, 'receiver_id');
     }
 
-    public function following()
+        public function following()
     {
         return $this->hasMany(Follow::class, 'follower_id');
     }
@@ -66,5 +65,15 @@ class Account extends Authenticatable
     public function isFollowing($accountId)
     {
         return $this->following()->where('following_id', $accountId)->exists();
+    }
+
+    public function followers()
+    {
+        return $this->hasMany(Follow::class, 'following_id');
+    }
+
+    public function isFollowedBy($accountId)
+    {
+        return $this->followers()->where('follower_id', $accountId)->exists();
     }
 }

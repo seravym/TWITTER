@@ -10,6 +10,10 @@
     @if (session('success'))
         <p style="color: green; font-weight: bold;">{{ session('success') }}</p>
     @endif
+    
+    @if ($errors->any())
+        <p style="color: red; font-weight: bold;">{{ $errors->first() }}</p>
+    @endif
 
     <hr>
 
@@ -34,14 +38,6 @@
         <hr>
 
         <h2>Buat Postingan Baru</h2>
-        @if ($errors->any())
-            <ul style="color: red;">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        @endif
-
         <form action="/posts" method="POST">
             @csrf
             <textarea name="content" rows="3" cols="50" placeholder="Apa yang sedang kamu pikirkan?" required></textarea>
@@ -88,11 +84,18 @@
 
                     <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc;">
                         
+                        <p style="font-size: 0.9em; font-weight: bold; margin-bottom: 5px;">
+                            {{ $post->comments->count() }} Komentar
+                        </p>
+
                         @if($post->comments->count() > 0)
                             <div style="margin-bottom: 10px;">
                                 @foreach($post->comments as $comment)
                                     <p style="margin: 5px 0; font-size: 0.9em; background: #f1f1f1; padding: 5px; border-radius: 5px;">
-                                        <strong>{{ $comment->account->name ?? 'Anonim' }}</strong>: {{ $comment->content }}
+                                        <strong>{{ $comment->account->name ?? 'Anonim' }}</strong> 
+                                        <span style="color: gray; font-size: 0.8em;">• {{ $comment->created_at->diffForHumans() }}</span>
+                                        <br>
+                                        {{ $comment->content }}
                                     </p>
                                 @endforeach
                             </div>
