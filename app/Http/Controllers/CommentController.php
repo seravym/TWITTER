@@ -21,6 +21,16 @@ class CommentController extends Controller
             'content' => 'required|string',
         ]);
 
+        $toxicWords = ['bodoh', 'jelek', 'kasar', 'anjing']; 
+        
+        $commentText = strtolower($request->content);
+        
+        foreach ($toxicWords as $word) {
+            if (str_contains($commentText, $word)) {
+                return back()->withErrors(['error' => 'Komentar ditolak! Mengandung kata yang tidak pantas.']);
+            }
+        }
+
         Comment::create([
             'account_id' => Auth::id(),
             'post_id' => $request->post_id,
