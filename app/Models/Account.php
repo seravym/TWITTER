@@ -57,7 +57,7 @@ class Account extends Authenticatable
         return $this->hasMany(DirectMessage::class, 'receiver_id');
     }
 
-    public function following()
+        public function following()
     {
         return $this->hasMany(Follow::class, 'follower_id');
     }
