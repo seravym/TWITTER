@@ -7,6 +7,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\FollowController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CommunityController;
 
 Route::get('/', [PostController::class, 'index'])->middleware('auth');
 
@@ -44,5 +45,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/{username}', [DirectMessageController::class, 'show'])->name('messages.show');
         Route::post('/{username}', [DirectMessageController::class, 'store'])->name('messages.store');
         Route::delete('/{id}', [DirectMessageController::class, 'destroy'])->name('messages.destroy');
+    });
+
+    Route::middleware('auth')->group(function () {
+        Route::get('/communities', [CommunityController::class, 'index']);
+        Route::get('/communities/create', [CommunityController::class, 'create']);
+        Route::post('/communities', [CommunityController::class, 'store']);
+        Route::get('/communities/{community}', [CommunityController::class, 'show']);
+        Route::post('/communities/{community}/join', [CommunityController::class, 'join']);
+        Route::post('/communities/{community}/leave', [CommunityController::class, 'leave']);
     });
 });
