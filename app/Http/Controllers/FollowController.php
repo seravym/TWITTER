@@ -8,12 +8,19 @@ use Illuminate\Support\Facades\Auth;
 
 class FollowController extends Controller
 {
+    /**
+     * Display a list of accounts the authenticated user is currently following.
+     */
     public function index()
     {
         $follows = Follow::where('follower_id', Auth::id())->with('following')->get();
         return view('follows.index', compact('follows'));
     }
 
+    /**
+     * Store a new follow relationship.
+     * Prevents self-following and duplicate follows via firstOrCreate logic.
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -32,6 +39,9 @@ class FollowController extends Controller
         return back()->with('success', 'Berhasil mem-follow akun!');
     }
 
+    /**
+     * Remove the specified follow relationship (Unfollow).
+     */
     public function destroy($id)
     {
         $follow = Follow::where('follower_id', Auth::id())

@@ -9,7 +9,7 @@
     <h1>Komentar Saya</h1>
     <hr>
     @if($comments->isEmpty())
-        <p>Belum ada komentar.</p>
+        <p><em>Ups, kamu belum pernah menulis komentar apapun.</em></p>
     @else
         <ul>
             @foreach($comments as $comment)
