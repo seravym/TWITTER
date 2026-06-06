@@ -28,6 +28,7 @@
             <li><a href="/messages">Direct Messages</a></li>
             <li><a href="/comments">Komentar Saya</a></li>
             <li><a href="/follows">Following Saya</a></li>
+            <li><a href="/communities">Lihat / Gabung Komunitas</a></li>
         </ul>
         
         <form action="/logout" method="POST" style="display: inline;">
