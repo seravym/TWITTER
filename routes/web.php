@@ -8,6 +8,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\FollowController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\SettingController;
 
 Route::get('/', [PostController::class, 'index'])->middleware('auth');
 
@@ -55,4 +56,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/communities/{community}/join', [CommunityController::class, 'join']);
         Route::post('/communities/{community}/leave', [CommunityController::class, 'leave']);
     });
+
+    // buat settings
+    Route::get('/settings', [SettingController::class, 'show'])->name('settings.show');
+    Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
 });
