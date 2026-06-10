@@ -23,6 +23,7 @@
         
         <ul>
             <li><a href="/accounts/{{ Auth::id() }}">Lihat Profil Saya</a></li>
+            <li><a href="/settings">Settings</a></li>
             <li><a href="/accounts">Lihat Semua Pengguna</a></li>
             <li><a href="/posts">Lihat Semua Postingan</a></li>
             <li><a href="/messages">Direct Messages</a></li>
