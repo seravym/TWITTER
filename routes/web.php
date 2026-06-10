@@ -9,6 +9,7 @@ use App\Http\Controllers\FollowController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\LikeController;
 
 Route::get('/', [PostController::class, 'index'])->middleware('auth');
 
@@ -29,7 +30,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/accounts/{account}', [AccountController::class, 'update']);
 
     Route::resource('posts', PostController::class);
-    Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like');
+    Route::post('/posts/{post}/like', [LikeController::class, 'toggle'])->name('posts.like');
 
     // Fitur Comment
     Route::get('/comments', [CommentController::class, 'index']);
