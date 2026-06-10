@@ -76,4 +76,14 @@ class Account extends Authenticatable
     {
         return $this->followers()->where('follower_id', $accountId)->exists();
     }
+
+    public function posts()
+    {
+        return $this->hasMany(Post::class, 'account_id');
+    }
+
+    public function likes()
+    {
+        return $this->hasMany(Like::class, 'account_id');
+    }
 }
