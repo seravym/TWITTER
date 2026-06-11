@@ -3,24 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Follow;
+use App\Models\Account;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class FollowController extends Controller
 {
-    /**
-     * Display a list of accounts the authenticated user is currently following.
-     */
     public function index()
     {
-        $follows = Follow::where('follower_id', Auth::id())->with('following')->get();
+        $follows = Follow::where('follower_id', Auth::id())->where('status', 'accepted')->with('following')->get();
         return view('follows.index', compact('follows'));
     }
 
-    /**
-     * Store a new follow relationship.
-     * Prevents self-following and duplicate follows via firstOrCreate logic.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -31,27 +26,47 @@ class FollowController extends Controller
             return back()->withErrors(['error' => 'Anda tidak bisa mem-follow diri sendiri.']);
         }
 
-        Follow::firstOrCreate([
+        // Cek pengaturan privasi akun target
+        $targetSetting = Setting::where('account_id', $request->following_id)->first();
+        $status = ($targetSetting && $targetSetting->isPrivateAccount) ? 'pending' : 'accepted';
+
+        $follow = Follow::firstOrCreate([
             'follower_id' => Auth::id(),
             'following_id' => $request->following_id
+        ], [
+            'status' => $status
         ]);
+
+        if ($status === 'pending') {
+            return back()->with('success', 'Permintaan ikuti (Follow Request) telah dikirim!');
+        }
 
         return back()->with('success', 'Berhasil mem-follow akun!');
     }
 
-    /**
-     * Remove the specified follow relationship (Unfollow).
-     */
     public function destroy($id)
     {
-        $follow = Follow::where('follower_id', Auth::id())
-                        ->where('following_id', $id)
-                        ->first();
-
-        if ($follow) {
-            $follow->delete();
-        }
-
+        Follow::where('follower_id', Auth::id())->where('following_id', $id)->delete();
         return back()->with('success', 'Berhasil berhenti mengikuti!');
+    }
+
+    // Menyetujui Follow Request
+    public function accept($followerId)
+    {
+        Follow::where('follower_id', $followerId)
+              ->where('following_id', Auth::id())
+              ->update(['status' => 'accepted']);
+
+        return back()->with('success', 'Permintaan mem-follow berhasil disetujui!');
+    }
+
+    // Menolak Follow Request
+    public function reject($followerId)
+    {
+        Follow::where('follower_id', $followerId)
+              ->where('following_id', Auth::id())
+              ->delete();
+
+        return back()->with('success', 'Permintaan mem-follow ditolak.');
     }
 }

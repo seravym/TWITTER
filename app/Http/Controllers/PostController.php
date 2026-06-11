@@ -9,10 +9,20 @@ use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-    $posts = Post::with(['account', 'likes'])->latest()->get();
-    return view('welcome', compact('posts'));
+        $feedType = $request->query('feed', 'global');
+
+        if ($feedType === 'following' && Auth::check()) {
+            $followingIds = Auth::user()->following()->where('status', 'accepted')->pluck('following_id')->toArray();
+            $posts = Post::whereIn('account_id', $followingIds)
+                 ->with(['account', 'likes'])
+                 ->latest()
+                 ->get();
+        } else {
+            $posts = Post::with(['account', 'likes'])->latest()->get();
+        }
+        return view('welcome', compact('posts', 'feedType'));
     }
 
     public function store(Request $request)
@@ -29,11 +39,8 @@ class PostController extends Controller
         return redirect()->route('posts.index')->with('success', 'Post berhasil dibuat!');
     }
 
-    // ... method show() tetap sama ...
-
     public function edit(Post $post)
     {
-        // UBAH: cek menggunakan account_id
         if (Auth::id() !== $post->account_id) {
             abort(403, 'Anda tidak berhak mengedit postingan ini.');
         }
