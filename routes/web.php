@@ -37,10 +37,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/comments', [CommentController::class, 'store']);
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
 
-    // Fitur Follow
+    // Fitur Follow & Request System
     Route::get('/follows', [FollowController::class, 'index']);
     Route::post('/follows', [FollowController::class, 'store']);
     Route::delete('/follows/{id}', [FollowController::class, 'destroy']);
+    Route::post('/follows/accept/{followerId}', [FollowController::class, 'accept']);
+    Route::post('/follows/reject/{followerId}', [FollowController::class, 'reject']);
 
     Route::prefix('messages')->group(function () {
         Route::get('/', [DirectMessageController::class, 'index'])->name('messages.index');

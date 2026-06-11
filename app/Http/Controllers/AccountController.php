@@ -16,7 +16,16 @@ class AccountController extends Controller
 
     public function show(Account $account)
     {
-        return view('accounts.show', compact('account'));
+        $isLocked = false;
+        if (Auth::id() !== $account->id) {
+            $setting = \App\Models\Setting::where('account_id', $account->id)->first();
+            if ($setting && $setting->isPrivateAccount) {
+                if (!Auth::check() || !Auth::user()->isFollowing($account->id)) {
+                    $isLocked = true;
+                }
+            }
+        }
+        return view('accounts.show', compact('account', 'isLocked'));
     }
 
     public function edit(Account $account)
