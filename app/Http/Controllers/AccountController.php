@@ -8,9 +8,17 @@ use Illuminate\Support\Facades\Auth;
 
 class AccountController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-    $accounts = \App\Models\Account::orderBy('name', 'asc')->get();
+    $query = \App\Models\Account::orderBy('name', 'asc');
+
+    if ($request->has('search') && $request->search != '') {
+        $search = $request->search;
+        $query->where('name', 'like', "%{$search}%")
+              ->orWhere('username', 'like', "%{$search}%");
+    }
+    $accounts = $query->get();
+
     return view('accounts.index', compact('accounts'));
     }
 

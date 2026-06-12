@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\Like;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -12,16 +13,31 @@ class PostController extends Controller
     public function index(Request $request)
     {
         $feedType = $request->query('feed', 'global');
+        $currentUserId = Auth::id();
+
+        $acceptedFollowingIds = Auth::check() 
+            ? Auth::user()->following()->where('status', 'accepted')->pluck('following_id')->toArray() 
+            : [];
 
         if ($feedType === 'following' && Auth::check()) {
-            $followingIds = Auth::user()->following()->where('status', 'accepted')->pluck('following_id')->toArray();
-            $posts = Post::whereIn('account_id', $followingIds)
-                 ->with(['account', 'likes'])
-                 ->latest()
-                 ->get();
+            $posts = Post::whereIn('account_id', $acceptedFollowingIds)
+                         ->orWhere('account_id', $currentUserId)
+                         ->with(['account', 'likes', 'comments'])
+                         ->latest()
+                         ->get();
         } else {
-            $posts = Post::with(['account', 'likes'])->latest()->get();
+            $privateAccountIds = Setting::where('isPrivateAccount', true)->pluck('account_id')->toArray();
+
+            $posts = Post::with(['account', 'likes', 'comments'])
+                         ->where(function($query) use ($currentUserId, $acceptedFollowingIds, $privateAccountIds) {
+                             $query->whereNotIn('account_id', $privateAccountIds) // Tampilkan jika BUKAN akun private
+                                   ->orWhere('account_id', $currentUserId)       // ATAU postingan milik kita sendiri
+                                   ->orWhereIn('account_id', $acceptedFollowingIds); // ATAU akun private yang sudah berhasil kita follow
+                         })
+                         ->latest()
+                         ->get();
         }
+
         return view('welcome', compact('posts', 'feedType'));
     }
 
@@ -32,7 +48,7 @@ class PostController extends Controller
         ]);
 
         Post::create([
-            'account_id' => Auth::id(), // UBAH ke account_id
+            'account_id' => Auth::id(), 
             'content' => $request->content
         ]);
 
@@ -50,7 +66,6 @@ class PostController extends Controller
 
     public function update(Request $request, Post $post)
     {
-        // UBAH: cek menggunakan account_id
         if (Auth::id() !== $post->account_id) {
             abort(403, 'Anda tidak berhak mengubah postingan ini.');
         }
@@ -68,7 +83,6 @@ class PostController extends Controller
 
     public function destroy(Post $post)
     {
-        // UBAH: cek menggunakan account_id
         if (Auth::id() !== $post->account_id) {
             abort(403, 'Anda tidak berhak menghapus postingan ini.');
         }
@@ -86,6 +100,7 @@ class PostController extends Controller
         $like = Like::where('account_id', $accountId)
             ->where('post_id', $post->id)
             ->first();
+            
         if ($like) {
             // unlike
             $like->delete();
