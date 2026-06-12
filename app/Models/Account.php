@@ -77,6 +77,15 @@ class Account extends Authenticatable
         return $this->followers()->where('follower_id', $accountId)->exists();
     }
 
+/**
+     * Relasi One-to-Many ke tabel comments.
+     * Satu akun bisa memiliki banyak komentar.
+     */
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
     public function posts()
     {
         return $this->hasMany(Post::class, 'account_id');
