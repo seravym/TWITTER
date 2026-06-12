@@ -45,7 +45,7 @@
 
 <div class="container">
     <a href="/" class="back-link">← Kembali ke Home</a>
-    <h1>Jelajahi Pengguna</h1>
+    <h1 style="text-align: center;">Jelajahi Pengguna</h1>
 
     <div class="list-card">
         @foreach($accounts as $acc)

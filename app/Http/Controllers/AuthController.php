@@ -14,7 +14,7 @@ class AuthController extends Controller
         return view('auth.register'); 
     }
 
-    public function register(Request $request)
+public function register(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
@@ -30,9 +30,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password), 
         ]);
 
-        Auth::login($account);
-
-        return redirect('/')->with('success', 'Akun berhasil dibuat!');
+        return redirect('/login')->with('success', 'Akun berhasil dibuat! Silakan login.');
     }
 
     public function showLogin()

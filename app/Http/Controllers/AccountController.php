@@ -10,8 +10,8 @@ class AccountController extends Controller
 {
     public function index()
     {
-        $accounts = Account::all();
-        return view('accounts.index', compact('accounts'));
+    $accounts = \App\Models\Account::orderBy('name', 'asc')->get();
+    return view('accounts.index', compact('accounts'));
     }
 
     public function show(Account $account)
@@ -56,6 +56,32 @@ class AccountController extends Controller
         ]);
 
         return redirect('/accounts/' . $account->id)->with('success', 'Profil berhasil diperbarui!');
+    }
+
+    public function updateStatus(Request $request)
+    {
+        $request->validate([
+            'status_text' => 'required|string|max:50',
+            'duration' => 'required|in:24_hours,3_days,1_week',
+        ]);
+
+        $account = \Illuminate\Support\Facades\Auth::user();
+        
+        $expiresAt = now();
+        if ($request->duration === '24_hours') {
+            $expiresAt = now()->addHours(24);
+        } elseif ($request->duration === '3_days') {
+            $expiresAt = now()->addDays(3);
+        } elseif ($request->duration === '1_week') {
+            $expiresAt = now()->addWeeks(1);
+        }
+
+        $account->update([
+            'status_text' => $request->status_text,
+            'status_expires_at' => $expiresAt,
+        ]);
+
+        return back()->with('success', 'Status berhasil diperbarui!');
     }
 
     public function create() {}
