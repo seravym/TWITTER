@@ -13,7 +13,8 @@
         .sidebar-card { background: white; border: 1px solid #eff3f4; border-radius: 20px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
         .sidebar-profile { text-align: center; border-bottom: 1px solid #eff3f4; padding-bottom: 25px; margin-bottom: 20px; }
         
-        .sidebar-avatar { border-radius: 50%; margin: 0 auto 15px auto; flex-shrink: 0; }
+        /* STYLE AVATAR - Disesuaikan agar isi hurufnya berada di tengah dengan warna putih */
+        .sidebar-avatar { border-radius: 50%; margin: 0 auto 15px auto; flex-shrink: 0; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; text-transform: uppercase; }
         
         .sidebar-name { font-weight: 800; font-size: 1.3em; color: #0f1419; margin-bottom: 5px; }
         .sidebar-username { color: #536471; font-size: 1em; margin-bottom: 15px; }
@@ -32,7 +33,8 @@
 
         .main-feed { width: 68%; background: white; border: 1px solid #eff3f4; border-radius: 20px; min-height: 100vh; padding-bottom: 50px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.01); }
         .feed-header { position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 10; border-bottom: 1px solid #eff3f4; }
-        .page-title { font-size: 1.4em; font-weight: 900; padding: 20px 15px 10px 15px; margin: 0; color: #0f1419; } 
+        /* PAGE TITLE - text-align: center ditambahkan di sini */
+        .page-title { font-size: 1.4em; font-weight: 900; padding: 20px 15px 10px 15px; margin: 0; color: #0f1419; text-align: center; } 
         .feed-tabs { display: flex; padding: 0 15px; }
         .tab-item { flex: 1; text-align: center; padding: 15px 0; text-decoration: none; color: #536471; font-weight: 700; transition: 0.2s; position: relative; font-size: 1.05em; }
         .tab-item:hover { background-color: #f7f9fa; color: #0f1419; border-radius: 8px 8px 0 0; }
@@ -83,7 +85,6 @@
 <body>
 
 @php
-    // FUNGSI PENGHASIL WARNA AVATAR KONSISTEN BERDASARKAN ID
     function getAvatarGradient($id) {
         $gradients = [
             'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)', // Ungu-Pink
@@ -105,7 +106,9 @@
         <div class="sidebar-card">
             @auth
                 <div class="sidebar-profile">
-                    <div class="sidebar-avatar" style="width: 90px; height: 90px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: {{ getAvatarGradient(Auth::id()) }};"></div>
+                    <div class="sidebar-avatar" style="width: 90px; height: 90px; font-size: 32px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: {{ getAvatarGradient(Auth::id()) }};">
+                        {{ substr(Auth::user()->name, 0, 1) }}
+                    </div>
                     <div class="sidebar-name">{{ Auth::user()->name }}</div>
                     <div class="sidebar-username">@ {{ Auth::user()->username }}</div>
                     
@@ -167,7 +170,9 @@
                 $randomPlaceholder = $placeholders[array_rand($placeholders)];
             @endphp
             <div class="compose-area">
-                <div class="sidebar-avatar" style="width: 50px; height: 50px; background: {{ getAvatarGradient(Auth::id()) }};"></div>
+                <div class="sidebar-avatar" style="width: 50px; height: 50px; font-size: 18px; margin-bottom: 0; background: {{ getAvatarGradient(Auth::id()) }};">
+                    {{ substr(Auth::user()->name, 0, 1) }}
+                </div>
                 <form action="/posts" method="POST" style="flex: 1;">
                     @csrf
                     <textarea name="content" class="compose-input" rows="2" placeholder="{{ $randomPlaceholder }}" required></textarea>
@@ -190,7 +195,9 @@
 
                     <div class="post-header">
                         <div style="display: flex; gap: 12px; align-items: center;">
-                            <div class="sidebar-avatar" style="width: 45px; height: 45px; margin: 0; background: {{ getAvatarGradient($post->account_id) }};"></div>
+                            <div class="sidebar-avatar" style="width: 45px; height: 45px; font-size: 16px; margin: 0; background: {{ getAvatarGradient($post->account_id) }};">
+                                {{ substr($post->account->name, 0, 1) }}
+                            </div>
                             <div>
                                 <a href="/accounts/{{ $post->account->id }}" class="post-name">{{ $post->account->name }}</a>
                                 <span class="post-meta">@ {{ $post->account->username }} • {{ $post->created_at->diffForHumans() }}</span>
@@ -216,7 +223,9 @@
                         @if($post->comments->count() > 0)
                             @foreach($post->comments->where('parent_id', null) as $comment)
                                 <div class="comment-item">
-                                    <div class="sidebar-avatar" style="width: 35px; height: 35px; flex-shrink: 0; background: {{ getAvatarGradient($comment->account_id) }};"></div>
+                                    <div class="sidebar-avatar" style="width: 35px; height: 35px; font-size: 14px; margin: 0; flex-shrink: 0; background: {{ getAvatarGradient($comment->account_id) }};">
+                                        {{ substr($comment->account->name ?? 'A', 0, 1) }}
+                                    </div>
                                     <div class="comment-bubble">
                                         <div style="margin-bottom: 4px; display: flex; justify-content: space-between;">
                                             <div>
@@ -271,7 +280,9 @@
                                     <div class="reply-thread-wrapper">
                                         @foreach($comment->replies as $reply)
                                             <div class="comment-item" style="margin-bottom: 8px;">
-                                                <div class="sidebar-avatar" style="width: 28px; height: 28px; flex-shrink: 0; background: {{ getAvatarGradient($reply->account_id) }};"></div>
+                                                <div class="sidebar-avatar" style="width: 28px; height: 28px; font-size: 12px; margin: 0; flex-shrink: 0; background: {{ getAvatarGradient($reply->account_id) }};">
+                                                    {{ substr($reply->account->name ?? 'A', 0, 1) }}
+                                                </div>
                                                 <div class="comment-bubble" style="background: #ffffff; padding: 10px 15px;">
                                                     <div style="margin-bottom: 4px; display: flex; justify-content: space-between;">
                                                         <div>
@@ -317,7 +328,9 @@
                         <form action="/comments" method="POST" id="comment-form-{{ $post->id }}" class="comment-form-container">
                             @csrf
                             <input type="hidden" name="post_id" value="{{ $post->id }}">
-                            <div class="sidebar-avatar" style="width: 40px; height: 40px; flex-shrink: 0; background: {{ getAvatarGradient(Auth::id()) }};"></div>
+                            <div class="sidebar-avatar" style="width: 40px; height: 40px; font-size: 16px; margin: 0; flex-shrink: 0; background: {{ getAvatarGradient(Auth::id()) }};">
+                                {{ substr(Auth::user()->name, 0, 1) }}
+                            </div>
                             <input type="text" name="content" class="comment-input" placeholder="Balas postingan ini..." required autocomplete="off">
                             <button type="submit" style="background: none; border: none; color: #1da1f2; font-weight: bold; cursor: pointer; padding: 0 10px; font-size: 1em;">Balas</button>
                         </form>

@@ -22,6 +22,8 @@ class Account extends Authenticatable
         'password',
         'avatar',
         'bio',
+        'status_text',
+        'status_expires_at',
     ];
 
     /**
@@ -57,7 +59,7 @@ class Account extends Authenticatable
         return $this->hasMany(DirectMessage::class, 'receiver_id');
     }
 
-        public function following()
+    public function following()
     {
         return $this->hasMany(Follow::class, 'follower_id');
     }
@@ -77,7 +79,14 @@ class Account extends Authenticatable
         return $this->followers()->where('follower_id', $accountId)->exists();
     }
 
-/**
+    public function isMutual($accountId)
+    {
+    $iFollowHim = $this->following()->where('following_id', $accountId)->where('status', 'accepted')->exists();
+    $heFollowsMe = $this->followers()->where('follower_id', $accountId)->where('status', 'accepted')->exists();
+    return $iFollowHim && $heFollowsMe;
+    }
+
+    /**
      * Relasi One-to-Many ke tabel comments.
      * Satu akun bisa memiliki banyak komentar.
      */
@@ -94,5 +103,18 @@ class Account extends Authenticatable
     public function likes()
     {
         return $this->hasMany(Like::class, 'account_id');
+    }
+
+    public function getActiveStatusAttribute()
+    {
+        if ($this->status_text && $this->status_expires_at && now()->lessThan($this->status_expires_at)) {
+            return $this->status_text;
+        }
+        return null;
+    }
+
+    public function stories()
+    {
+        return $this->hasMany(Story::class);
     }
 }

@@ -13,25 +13,61 @@
 
         .profile-content { padding: 20px 30px 30px 30px; position: relative; }
         .threads-header { position: relative; min-height: 60px; margin-bottom: 10px; }
-        .threads-info { padding-right: 130px; padding-top: 5px; }
+        .threads-info { padding-right: 150px; padding-top: 5px; }
         .threads-name { font-size: 1.8em; font-weight: 900; margin: 0 0 5px 0; color: #0f1419; letter-spacing: -0.5px; }
         .threads-username { color: #536471; font-size: 1em; background: #f7f9fa; padding: 4px 12px; border-radius: 20px; display: inline-block; font-weight: 600; border: 1px solid #eff3f4; }
         
-        /* CSS Background dihapus agar bisa dimanipulasi dengan PHP */
-        .profile-avatar { position: absolute; right: 0; top: -70px; width: 110px; height: 110px; border-radius: 50%; border: 4px solid white; flex-shrink: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-        .feed-avatar { border-radius: 50%; flex-shrink: 0; margin: 0; }
+        .profile-avatar-wrapper { position: absolute; right: 0; top: -85px; width: 130px; height: 130px; z-index: 5; }
+        .profile-avatar { box-sizing: border-box; width: 100%; height: 100%; border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.08); display: flex; align-items: center; justify-content: center; font-size: 55px; color: white; font-weight: bold; text-transform: uppercase; background-color: #fff; position: relative; z-index: 2; }
         
-        .bio-text { font-size: 1.1em; line-height: 1.5; margin: 15px 0; color: #0f1419; }
+        .story-ring {
+            position: absolute; top: -4px; left: -4px; right: -4px; bottom: -4px;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            border-radius: 50%; z-index: 1;
+        }
+        
+        .status-badge { 
+            position: absolute; bottom: 5px; left: -5px; width: 36px; height: 36px; 
+            background: #1d9bf0; color: white; border: 3px solid white; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; font-size: 22px; 
+            font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+            transition: 0.2s; padding: 0; line-height: 1; z-index: 25;
+        }
+        .status-badge:hover { transform: scale(1.1); background: #1a8cd8; }
+
+        .status-bubble {
+            position: absolute; top: 140px; right: 0; background: white; border: 1px solid #eff3f4;
+            padding: 8px 16px; border-radius: 20px; font-size: 13px; color: #0f1419;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); font-weight: 600; z-index: 20;
+            animation: float 3s ease-in-out infinite; max-width: 180px; width: max-content;
+            word-wrap: break-word; text-align: center; cursor: pointer; transition: 0.2s;
+        }
+        .status-bubble.empty-bubble { color: #536471; font-weight: normal; font-style: italic; }
+        .status-bubble:hover { background: #f7f9fa; transform: translateY(-2px); }
+        .status-bubble::after {
+            content: ''; position: absolute; top: -6px; right: 40px; width: 12px; height: 12px;
+            background: white; border-top: 1px solid #eff3f4; border-left: 1px solid #eff3f4;
+            transform: rotate(45deg);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .feed-avatar { border-radius: 50%; flex-shrink: 0; margin: 0; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; text-transform: uppercase; }
+        .bio-text { font-size: 1.1em; line-height: 1.5; margin: 30px 0 15px 0; color: #0f1419; } 
         .meta-stats { display: flex; gap: 15px; margin: 20px 0 25px 0; font-size: 0.95em; color: #536471; border-bottom: none; }
         .stat-link { background: #fdfdfe; padding: 10px 18px; border-radius: 30px; cursor: pointer; user-select: none; transition: all 0.3s ease; border: 1px solid #eff3f4; }
         .stat-link:hover { background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-3px); color: #0f1419; border-color: #cfd9de; }
         .stat-link strong { color: #0f1419; font-weight: 800; font-size: 1.15em; margin-right: 4px; }
 
-        .btn-follow { background: #0f1419; color: white; border: none; padding: 12px 25px; font-weight: bold; border-radius: 30px; cursor: pointer; width: 100%; font-size: 1.05em; transition: 0.2s; }
-        .btn-unfollow { background: white; color: #0f1419; border: 1px solid #cfd9de; padding: 12px 25px; font-weight: bold; border-radius: 30px; cursor: pointer; width: 100%; font-size: 1.05em; transition: 0.2s; }
+        .btn-follow, .btn-unfollow, .btn-edit { padding: 12px 25px; font-weight: bold; border-radius: 30px; cursor: pointer; width: 100%; font-size: 1.05em; transition: 0.2s; }
+        .btn-follow { background: #0f1419; color: white; border: none; }
+        .btn-unfollow { background: white; color: #0f1419; border: 1px solid #cfd9de; }
         .btn-unfollow:hover { border-color: #f4212e; color: #f4212e; background: #fdeced; }
-        .btn-edit { background: white; color: #0f1419; border: 1px solid #cfd9de; padding: 12px 25px; font-weight: bold; border-radius: 30px; cursor: pointer; width: 100%; font-size: 1.05em; transition: 0.2s; }
-        .btn-edit:hover { background: #f7f9fa; border-color: #cfd9de; box-shadow: inset 0 2px 5px rgba(0,0,0,0.03); }
+        .btn-edit { background: white; color: #0f1419; border: 1px solid #cfd9de; }
+        .btn-edit:hover { background: #f7f9fa; box-shadow: inset 0 2px 5px rgba(0,0,0,0.03); }
 
         .profile-tabs { display: flex; margin-top: 15px; border-top: 1px solid #eff3f4; padding-top: 5px; }
         .tab-item { flex: 1; text-align: center; padding: 15px 0; cursor: pointer; font-weight: 700; color: #536471; border-bottom: 2px solid transparent; transition: 0.2s; }
@@ -50,6 +86,9 @@
         .modal-user-list li { padding: 15px 20px; border-bottom: 1px solid #f7f9fa; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
         .modal-user-list li:hover { background: #fdfdfe; }
         .modal-user-list a { text-decoration: none; color: #0f1419; font-weight: bold; font-size: 1.05em; }
+
+        .story-input, .status-input, .status-select { width: 100%; padding: 12px 15px; border: 1px solid #cfd9de; border-radius: 12px; margin-bottom: 15px; font-size: 1em; box-sizing: border-box; outline: none; background: white; }
+        .status-input:focus { border-color: #1d9bf0; }
     </style>
 </head>
 <body>
@@ -57,17 +96,18 @@
 @php
     function getAvatarGradient($id) {
         $gradients = [
-            'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
-            'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
-            'linear-gradient(135deg, #fccb90 0%, #d57eeb 100%)',
-            'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)',
-            'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-            'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-            'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-            'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)'
+            'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)', 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
+            'linear-gradient(135deg, #fccb90 0%, #d57eeb 100%)', 'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)',
+            'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+            'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)', 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)'
         ];
         return $gradients[$id % count($gradients)];
     }
+
+    $prompts = ['Apa mood mu hari ini?', 'Lagi dengerin lagu apa?', 'Pengen ngunyah makanan?', 'Lagi sibuk apa nih?'];
+    $randomPrompt = $prompts[array_rand($prompts)];
+    
+    $hasActiveStory = $account->stories()->where('expires_at', '>', now())->exists();
 @endphp
 
 <div class="profile-container">
@@ -81,7 +121,38 @@
                 <h1 class="threads-name">{{ $account->name }}</h1>
                 <div class="threads-username">@ {{ $account->username }}</div>
             </div>
-            <div class="profile-avatar" style="background: {{ getAvatarGradient($account->id) }};"></div>
+            
+            <div class="profile-avatar-wrapper">
+                
+                @if($hasActiveStory)
+                    <a href="{{ route('stories.show', $account->id) }}" style="text-decoration: none; display: block; width: 100%; height: 100%;">
+                        <div class="story-ring"></div>
+                        <div class="profile-avatar" style="background: {{ getAvatarGradient($account->id) }};">
+                            {{ substr($account->name, 0, 1) }}
+                        </div>
+                    </a>
+                @else
+                    <div class="profile-avatar" style="background: {{ getAvatarGradient($account->id) }};">
+                        {{ substr($account->name, 0, 1) }}
+                    </div>
+                @endif
+                
+                @if($account->active_status)
+                    <div class="status-bubble" onclick="openModal('statusModal')">
+                        💭 {{ $account->active_status }}
+                    </div>
+                @elseif(Auth::id() === $account->id)
+                    <div class="status-bubble empty-bubble" onclick="openModal('statusModal')">
+                        ➕ {{ $randomPrompt }}
+                    </div>
+                @endif
+
+                @auth
+                    @if(Auth::id() === $account->id)
+                        <button class="status-badge" onclick="openModal('storyModal')">+</button>
+                    @endif
+                @endauth
+            </div>
         </div>
 
         @if(isset($isLocked) && $isLocked)
@@ -144,7 +215,9 @@
                     @foreach($userPosts as $post)
                         <div class="feed-card">
                             <div style="display: flex; gap: 15px;">
-                                <div class="feed-avatar" style="width: 45px; height: 45px; background: {{ getAvatarGradient($account->id) }};"></div>
+                                <div class="feed-avatar" style="width: 45px; height: 45px; font-size: 18px; background: {{ getAvatarGradient($account->id) }};">
+                                    {{ substr($account->name, 0, 1) }}
+                                </div>
                                 <div>
                                     <div style="font-weight: bold; color: #0f1419;">{{ $account->name }} <span style="color: #536471; font-weight: normal; font-size: 0.9em;">• {{ $post->created_at->diffForHumans() }}</span></div>
                                     <div style="margin-top: 5px; font-size: 1.05em; line-height: 1.5;">{{ $post->content }}</div>
@@ -164,7 +237,9 @@
                     @foreach($userComments as $comment)
                         <div class="feed-card">
                             <div style="display: flex; gap: 15px;">
-                                <div class="feed-avatar" style="width: 45px; height: 45px; background: {{ getAvatarGradient($account->id) }};"></div>
+                                <div class="feed-avatar" style="width: 45px; height: 45px; font-size: 18px; background: {{ getAvatarGradient($account->id) }};">
+                                    {{ substr($account->name, 0, 1) }}
+                                </div>
                                 <div>
                                     <div style="font-weight: bold; color: #0f1419;">{{ $account->name }} <span style="color: #536471; font-weight: normal; font-size: 0.9em;">• berkomentar</span></div>
                                     <div style="margin-top: 5px; font-size: 1.05em; line-height: 1.5;">{{ $comment->content }}</div>
@@ -175,6 +250,43 @@
                 @endif
             </div>
         @endif
+    </div>
+</div>
+
+<div id="statusModal" class="modal">
+    <div class="modal-content" style="padding: 25px;">
+        <div class="modal-header" style="border: none; padding: 0 0 15px 0;">
+            <span class="close-btn" onclick="closeModal('statusModal')" style="top: 0; right: 0; left: auto;">×</span>
+            <h3>Set Notes Hari Ini</h3>
+        </div>
+        
+        <form action="{{ route('accounts.status') }}" method="POST">
+            @csrf
+            <input type="text" name="status_text" class="status-input" placeholder="Tulis sesuatu..." maxlength="50" required autocomplete="off">
+            <label style="font-size: 14px; font-weight: bold; color: #536471; display: block; margin-bottom: 8px;">Tampilkan notes selama:</label>
+            <select name="duration" class="status-select">
+                <option value="24_hours">24 Jam</option>
+                <option value="3_days">3 Hari</option>
+                <option value="1_week">1 Minggu</option>
+            </select>
+            <button type="submit" class="btn-follow" style="width: 100%; border-radius: 12px; padding: 14px;">Simpan Notes</button>
+        </form>
+    </div>
+</div>
+
+<div id="storyModal" class="modal">
+    <div class="modal-content" style="padding: 25px;">
+        <div class="modal-header" style="border: none; padding: 0 0 15px 0;">
+            <span class="close-btn" onclick="closeModal('storyModal')" style="top: 0; right: 0; left: auto;">×</span>
+            <h3>Unggah Story Baru</h3>
+        </div>
+        
+        <form action="{{ route('stories.store') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <label style="font-size: 14px; font-weight: bold; color: #536471; display: block; margin-bottom: 8px;">Pilih Gambar/Video (maks. 2MB):</label>
+            <input type="file" name="media" class="story-input" accept="image/*" required>
+            <button type="submit" class="btn-follow" style="width: 100%; border-radius: 12px; padding: 14px;">Unggah Story</button>
+        </form>
     </div>
 </div>
 
@@ -191,7 +303,9 @@
                 @foreach($myFollowers as $f)
                     <li>
                         <div style="display: flex; gap: 12px; align-items: center;">
-                            <div class="feed-avatar" style="width: 35px; height: 35px; background: {{ getAvatarGradient($f->follower->id) }};"></div>
+                            <div class="feed-avatar" style="width: 35px; height: 35px; font-size: 14px; background: {{ getAvatarGradient($f->follower->id) }};">
+                                {{ substr($f->follower->name, 0, 1) }}
+                            </div>
                             <div>
                                 <a href="/accounts/{{ $f->follower->id }}">{{ $f->follower->name }}</a>
                                 <div style="color: #536471; font-size: 0.9em;">@ {{ $f->follower->username }}</div>
@@ -217,7 +331,9 @@
                 @foreach($myFollowing as $g)
                     <li>
                         <div style="display: flex; gap: 12px; align-items: center;">
-                            <div class="feed-avatar" style="width: 35px; height: 35px; background: {{ getAvatarGradient($g->following->id) }};"></div>
+                            <div class="feed-avatar" style="width: 35px; height: 35px; font-size: 14px; background: {{ getAvatarGradient($g->following->id) }};">
+                                {{ substr($g->following->name, 0, 1) }}
+                            </div>
                             <div>
                                 <a href="/accounts/{{ $g->following->id }}">{{ $g->following->name }}</a>
                                 <div style="color: #536471; font-size: 0.9em;">@ {{ $g->following->username }}</div>

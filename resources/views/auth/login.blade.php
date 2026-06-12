@@ -20,7 +20,6 @@
             text-align: center;
         }
 
-        /* Teks Twitter Style */
         .twitter-logo {
             font-size: 75px;
             font-weight: 900;
@@ -62,6 +61,12 @@
     <div class="twitter-logo">Twitter</div>
 
     <h2>Form Login</h2>
+
+    @if (session('success'))
+        <div style="background: #e6fffa; color: #2c7a7b; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            {{ session('success') }}
+        </div>
+    @endif
 
     @if ($errors->any())
         <ul class="error-list">
