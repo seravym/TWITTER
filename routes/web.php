@@ -32,10 +32,11 @@ Route::middleware('auth')->group(function () {
     Route::resource('posts', PostController::class);
     Route::post('/posts/{post}/like', [LikeController::class, 'toggle'])->name('posts.like');
 
-    // Fitur Comment
-    Route::get('/comments', [CommentController::class, 'index']);
-    Route::post('/comments', [CommentController::class, 'store']);
-    Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
+    // Fitur Komentar
+    Route::get('/comments', [App\Http\Controllers\CommentController::class, 'index']);
+    Route::post('/comments', [App\Http\Controllers\CommentController::class, 'store']);
+    Route::put('/comments/{comment}', [App\Http\Controllers\CommentController::class, 'update']);
+    Route::delete('/comments/{comment}', [App\Http\Controllers\CommentController::class, 'destroy']);
 
     // Fitur Follow & Request System
     Route::get('/follows', [FollowController::class, 'index']);

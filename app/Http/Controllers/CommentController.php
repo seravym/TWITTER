@@ -2,63 +2,87 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Comment;
+use App\Models\Post;
+use App\Models\Like;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class CommentController extends Controller
+class PostController extends Controller
 {
     /**
-     * Display a listing of the user's comments.
-     * Fetches all comments created by the authenticated user along with the associated post.
+     * Menampilkan timeline dengan opsi filter Following atau Global.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $comments = Comment::where('account_id', Auth::id())->with('post')->latest()->get();
-        return view('comments.index', compact('comments'));
+        $feedType = $request->query('feed', 'global');
+
+        if ($feedType === 'following' && Auth::check()) {
+            // Ambil ID orang yang di-follow oleh user saat ini
+            $followingIds = Auth::user()->following()->where('status', 'accepted')->pluck('following_id')->toArray();
+            
+            // Tampilkan postingan dari orang yang di-follow + postingan sendiri
+            $posts = Post::whereIn('account_id', $followingIds)
+                         ->orWhere('account_id', Auth::id())
+                         ->with(['account', 'likes', 'comments'])
+                         ->latest()
+                         ->get();
+        } else {
+            // Default: Tampilkan semua postingan
+            $posts = Post::with(['account', 'likes', 'comments'])->latest()->get();
+        }
+
+        return view('welcome', compact('posts', 'feedType'));
     }
 
     /**
-     * Store a newly created comment in storage.
-     * Validates the request and associates the comment with the current user and specified post.
+     * Menyimpan postingan baru.
      */
     public function store(Request $request)
     {
         $request->validate([
-            'post_id' => 'required|exists:posts,id',
-            'content' => 'required|string',
+            'content' => 'required|string'
         ]);
 
-        $toxicWords = ['bodoh', 'jelek', 'kasar', 'anjing']; 
-        
-        $commentText = strtolower($request->content);
-        
-        foreach ($toxicWords as $word) {
-            if (str_contains($commentText, $word)) {
-                return back()->withErrors(['error' => 'Komentar ditolak! Mengandung kata yang tidak pantas.']);
-            }
-        }
-
-        Comment::create([
+        Post::create([
             'account_id' => Auth::id(),
-            'post_id' => $request->post_id,
-            'content' => $request->content,
+            'content' => $request->content
         ]);
 
-        return back()->with('success', 'Komentar berhasil ditambahkan!');
+        // Menggunakan redirect('/') karena welcome.blade.php biasanya diakses dari route '/'
+        return redirect('/')->with('success', 'Post berhasil dibuat!');
     }
 
     /**
-     * Remove the specified comment from storage.
-     * Ensures only the comment owner can delete their specific comment.
+     * Menghapus postingan.
      */
-    public function destroy(Comment $comment)
+    public function destroy(Post $post)
     {
-        if (Auth::id() !== $comment->account_id) {
-            abort(403, 'Anda tidak berhak menghapus komentar ini.');
+        if (Auth::id() !== $post->account_id) {
+            abort(403, 'Anda tidak berhak menghapus postingan ini.');
         }
 
-        $comment->delete();
-        return back()->with('success', 'Komentar berhasil dihapus!');
+        $post->delete();
+        return redirect('/')->with('success', 'Post berhasil dihapus!');
+    }
+
+    /**
+     * Like / Unlike Toggle.
+     */
+    public function like(Post $post)
+    {
+        $accountId = Auth::id();
+        $like = Like::where('account_id', $accountId)
+            ->where('post_id', $post->id)
+            ->first();
+
+        if ($like) {
+            $like->delete();
+        } else {
+            Like::create([
+                'account_id' => $accountId,
+                'post_id' => $post->id
+            ]);
+        }
+        return back();
     }
 }
