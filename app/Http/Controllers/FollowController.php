@@ -12,7 +12,11 @@ class FollowController extends Controller
 {
     public function index()
     {
-        $follows = Follow::where('follower_id', Auth::id())->where('status', 'accepted')->with('following')->get();
+        $follows = Follow::where('follower_id', Auth::id())
+            ->where('status', 'accepted')
+            ->with('following')
+            ->get();
+            
         return view('follows.index', compact('follows'));
     }
 
@@ -26,16 +30,18 @@ class FollowController extends Controller
             return back()->withErrors(['error' => 'Anda tidak bisa mem-follow diri sendiri.']);
         }
 
-        // Cek pengaturan privasi akun target
         $targetSetting = Setting::where('account_id', $request->following_id)->first();
         $status = ($targetSetting && $targetSetting->isPrivateAccount) ? 'pending' : 'accepted';
 
-        $follow = Follow::firstOrCreate([
-            'follower_id' => Auth::id(),
-            'following_id' => $request->following_id
-        ], [
-            'status' => $status
-        ]);
+        $follow = Follow::updateOrCreate(
+            [
+                'follower_id' => Auth::id(),
+                'following_id' => $request->following_id
+            ],
+            [
+                'status' => $status
+            ]
+        );
 
         if ($status === 'pending') {
             return back()->with('success', 'Permintaan ikuti (Follow Request) telah dikirim!');
@@ -46,26 +52,27 @@ class FollowController extends Controller
 
     public function destroy($id)
     {
-        Follow::where('follower_id', Auth::id())->where('following_id', $id)->delete();
+        Follow::where('follower_id', Auth::id())
+            ->where('following_id', $id)
+            ->delete();
+
         return back()->with('success', 'Berhasil berhenti mengikuti!');
     }
 
-    // Menyetujui Follow Request
     public function accept($followerId)
     {
         Follow::where('follower_id', $followerId)
-              ->where('following_id', Auth::id())
-              ->update(['status' => 'accepted']);
+            ->where('following_id', Auth::id())
+            ->update(['status' => 'accepted']);
 
         return back()->with('success', 'Permintaan mem-follow berhasil disetujui!');
     }
 
-    // Menolak Follow Request
     public function reject($followerId)
     {
         Follow::where('follower_id', $followerId)
-              ->where('following_id', Auth::id())
-              ->delete();
+            ->where('following_id', Auth::id())
+            ->delete();
 
         return back()->with('success', 'Permintaan mem-follow ditolak.');
     }

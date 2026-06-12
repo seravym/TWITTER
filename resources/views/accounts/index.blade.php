@@ -47,21 +47,45 @@
     <a href="/" class="back-link">← Kembali ke Home</a>
     <h1 style="text-align: center;">Jelajahi Pengguna</h1>
 
-    <div class="list-card">
-        @foreach($accounts as $acc)
-            <a href="/accounts/{{ $acc->id }}" class="user-card">
-                <div class="avatar" style="background: {{ getAvatarGradient($acc->id) }};">
-                    {{ substr($acc->name, 0, 1) }}
-                </div>
-                
-                <div class="user-info">
-                    <div class="name">{{ $acc->name }}</div>
-                    <div class="username">{{ '@' . $acc->username }}</div>
-                    <div class="bio">{{ $acc->bio ?? 'Belum ada bio.' }}</div>
-                </div>
-            </a>
-        @endforeach
-    </div>
+    <form action="/accounts" method="GET" style="margin-bottom: 30px; text-align: center;">
+        <div style="position: relative; max-width: 500px; margin: 0 auto; display: flex; gap: 10px; height: 45px;">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama atau @username..." 
+                   style="flex: 1; padding: 0 20px; border-radius: 30px; border: 1px solid #cfd9de; font-size: 15px; outline: none; transition: 0.2s; box-sizing: border-box; height: 100%;"
+                   onfocus="this.style.borderColor='#1d9bf0'" onblur="this.style.borderColor='#cfd9de'">
+            
+            <button type="submit" style="background: #1da1f2; color: white; border: none; padding: 0 25px; border-radius: 30px; font-weight: bold; cursor: pointer; transition: 0.2s; height: 100%;"
+                    onmouseover="this.style.background='#1a91da'" onmouseout="this.style.background='#1da1f2'">
+                Cari
+            </button>
+            
+            @if(request('search'))
+                <a href="/accounts" style="background: #eff3f4; color: #0f1419; text-decoration: none; padding: 0 20px; border-radius: 30px; font-weight: bold; display: flex; align-items: center; justify-content: center; height: 100%; box-sizing: border-box;">Reset</a>
+            @endif
+        </div>
+    </form>
+
+    @if($accounts->isEmpty())
+        <div style="text-align: center; padding: 40px; color: #536471;">
+            <h3 style="margin-bottom: 5px;">Tidak ada pengguna yang ditemukan.</h3>
+            <p style="margin-top: 0;">Coba gunakan kata kunci pencarian yang lain.</p>
+        </div>
+    @else
+        <div class="list-card">
+            @foreach($accounts as $acc)
+                <a href="/accounts/{{ $acc->id }}" class="user-card">
+                    <div class="avatar" style="background: {{ getAvatarGradient($acc->id) }};">
+                        {{ substr($acc->name, 0, 1) }}
+                    </div>
+                    
+                    <div class="user-info">
+                        <div class="name">{{ $acc->name }}</div>
+                        <div class="username">{{ '@' . $acc->username }}</div>
+                        <div class="bio">{{ $acc->bio ?? 'Belum ada bio.' }}</div>
+                    </div>
+                </a>
+            @endforeach
+        </div>
+    @endif
 </div>
 
 </body>

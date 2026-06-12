@@ -5,7 +5,7 @@
     <title>Masuk ke Twitter</title>
     <style>
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #f7f9fa;
             color: #0f1419;
             display: flex; justify-content: center; align-items: center; 
