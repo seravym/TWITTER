@@ -20,7 +20,10 @@
         .sidebar-avatar { width: 100%; height: 100%; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 35px; text-transform: uppercase; transition: 0.2s; position: relative; z-index: 2; border: 3px solid white; box-sizing: border-box; }
         .sidebar-avatar:hover { opacity: 0.8; }
         .story-ring { position: absolute; top: -3px; left: -3px; right: -3px; bottom: -3px; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); border-radius: 50%; z-index: 1; }
-        .status-bubble-sidebar { position: absolute; bottom: 0; right: -10px; background: white; border: 1px solid #eff3f4; padding: 4px 10px; border-radius: 20px; font-size: 11px; color: #0f1419; box-shadow: 0 2px 10px rgba(0,0,0,0.08); font-weight: 600; z-index: 20; max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+        
+        .status-bubble-sidebar { position: absolute; top: -5px; right: -15px; background: white; border: 1px solid #eff3f4; padding: 4px 10px; border-radius: 20px; font-size: 11px; color: #0f1419; box-shadow: 0 2px 10px rgba(0,0,0,0.08); font-weight: 600; z-index: 20; max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; transition: transform 0.1s; }
+        .status-bubble-feed { position: absolute; top: -4px; right: -6px; background: white; border: 1px solid #eff3f4; padding: 2px 6px; border-radius: 12px; font-size: 10px; color: #0f1419; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-weight: 700; z-index: 10; cursor: default; }
+        .status-bubble-sidebar:active { transform: scale(0.9); }
 
         .sidebar-name { font-weight: 800; font-size: 1.3em; color: #0f1419; margin-bottom: 5px; }
         .sidebar-username { color: #536471; font-size: 1em; margin-bottom: 15px; }
@@ -38,7 +41,7 @@
         .nav-menu a:hover { background-color: #e8f5fe; color: #1da1f2; }
         
         .btn-logout { width: 100%; background: white; color: #f4212e; border: 1px solid #f4212e; padding: 12px; border-radius: 30px; font-weight: bold; font-size: 1em; cursor: pointer; margin-top: 15px; transition: 0.2s; }
-        .btn-logout:hover { background: #fdeced; }
+        .btn-logout:hover { background: #f4212e; color: white; border-color: #f4212e; }
 
         .main-feed { width: 68%; background: white; border: 1px solid #eff3f4; border-radius: 20px; min-height: 100vh; padding-bottom: 50px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.01); }
         .feed-header { position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 10; border-bottom: 1px solid #eff3f4; }
@@ -50,7 +53,7 @@
         .tab-item.active::after { content: ''; position: absolute; bottom: 0; left: 25%; width: 50%; height: 4px; background-color: #1da1f2; border-radius: 4px 4px 0 0; }
 
         .compose-area { padding: 25px; background-color: white; border-bottom: 8px solid #eff3f4; display: flex; gap: 20px; }
-        .compose-input-wrapper { flex: 1; border: 1px solid #cfd9de; border-radius: 16px; padding: 10px 15px; transition: 0.2s; background: #fcfdfe; }
+        .compose-input-wrapper { flex: 1; border: 1px solid #cfd9de; border-radius: 16px; padding: 10px 15px; transition: 0.2s; background: #fcfdfe; position: relative;}
         .compose-input-wrapper:focus-within { border-color: #1da1f2; box-shadow: 0 0 0 1px #1da1f2; background: white; }
         .compose-input { width: 100%; box-sizing: border-box; border: none; font-size: 1.15em; outline: none; resize: none; background: transparent; color: #0f1419; font-family: inherit; }
         .compose-input::placeholder { color: #8899a6; font-weight: 500; }
@@ -60,6 +63,11 @@
         .btn-post:hover { background: #1a91da; }
         .btn-emoji { background: none; border: none; font-size: 1.2em; cursor: pointer; border-radius: 50%; padding: 5px; transition: 0.2s; opacity: 0.7; }
         .btn-emoji:hover { background: #e8f5fe; opacity: 1; }
+
+        .emoji-picker-popup { display: none; position: absolute; bottom: calc(100% + 15px); right: 0; left: auto; background: white; border: 1px solid #cfd9de; border-radius: 12px; padding: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 100; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+        .popup-up { top: auto !important; bottom: calc(100% + 15px) !important; right: 0; }
+        .emoji-item { cursor: pointer; font-size: 1.2em; text-align: center; padding: 5px; border-radius: 8px; transition: 0.2s; }
+        .emoji-item:hover { background: #e8f5fe; }
 
         .post-card { border-bottom: 8px solid #eff3f4; transition: 0.2s; position: relative; }
         .post-inner { padding: 25px 25px 15px 25px; background: white; }
@@ -84,49 +92,58 @@
         .action-pill.like:hover { background: #fce8f3; color: #f91880; border-color: #f91880; }
         .action-pill.delete:hover { background: #fdeced; color: #f4212e; border-color: #f4212e; }
 
-        .comment-section-wrapper { display: none; background: #fcfdfe; border-top: 1px solid #eff3f4; }
+        .comment-section-wrapper { display: none; background: #fafbfc; border-top: 1px solid #eff3f4; box-shadow: inset 0px 5px 10px rgba(0,0,0,0.01); }
         .comment-list-area { padding: 15px 25px; }
-        .comment-item { display: flex; gap: 12px; margin-bottom: 20px; position: relative; }
-        .comment-avatar { flex-shrink: 0; margin-top: 5px; }
-        .comment-bubble { background: #f7f9fa; padding: 15px 20px; border-radius: 16px; flex: 1; border: 1px solid #eff3f4; }
         
-        .reply-thread-wrapper { margin-left: 55px; border-left: 2px solid #e1e8ed; padding-left: 15px; margin-top: -10px; margin-bottom: 15px; display: none; }
-        .btn-toggle-replies { background: none; border: none; color: #1da1f2; font-weight: bold; cursor: pointer; font-size: 0.85em; padding: 0; margin-left: 55px; margin-bottom: 20px; display: inline-block; }
-
-        .author-badge { font-size: 0.75em; background: #fce8f3; color: #f91880; padding: 2px 6px; border-radius: 10px; margin-left: 6px; vertical-align: text-top; font-weight: bold; border: 1px solid #f91880; }
+        .sort-bar { display: flex; gap: 15px; border-bottom: 1px solid #eff3f4; padding-bottom: 10px; margin-bottom: 20px; font-size: 0.85em; color: #536471; }
+        .sort-option { cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .sort-option:hover { color: #1da1f2; }
+        .sort-option.active { color: #0f1419; font-weight: 800; }
+        
+        .comment-item { display: flex; gap: 12px; margin-bottom: 20px; position: relative; }
+        .comment-avatar { flex-shrink: 0; margin-top: 5px; position: relative; width: 40px; height: 40px; }
+        .comment-bubble { background: #ffffff; padding: 15px 20px; border-radius: 16px; flex: 1; border: 1px solid #eff3f4; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+        
+        .reply-thread-wrapper { margin-left: 55px; border-left: 2px solid #e1e8ed; padding-left: 15px; margin-top: -15px; margin-bottom: 15px; display: none; }
+        .btn-toggle-replies { background: none; border: none; color: #1da1f2; font-weight: bold; cursor: pointer; font-size: 0.85em; padding: 0; margin-left: 55px; margin-bottom: 20px; margin-top: -5px; display: inline-block; }
 
         .comment-action-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; width: 100%; }
-        .comment-meta-left { flex: 1; }
-        .comment-buttons-right { display: flex; gap: 15px; align-items: center; font-size: 0.9em; }
+        .comment-meta-left { flex: 1; display: flex; align-items: center; gap: 10px;}
+        
+        .comment-bottom-row { display: flex; justify-content: flex-end; align-items: center; margin-top: 10px; border-top: 1px dashed #eff3f4; padding-top: 8px; }
+        
+        .c-actions-right { display: flex; gap: 12px; align-items: center; font-size: 0.85em; position: relative;}
         
         .c-btn { background: none; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; padding: 0; display: flex; align-items: center; gap: 4px; font-size: 1em; }
         .c-btn-reply { color: #1da1f2; }
         .c-btn-reply:hover { text-decoration: underline; }
-        .c-btn-like { color: #536471; filter: grayscale(100%); opacity: 0.6; } 
+        .c-btn-like { color: #536471; filter: grayscale(100%); opacity: 0.6; position: relative;} 
         .c-btn-like.active { filter: none; opacity: 1; color: #f91880; } 
-        .c-btn-dislike { transform: scaleY(-1); margin-top: -4px; color: #536471; filter: grayscale(100%); opacity: 0.6; font-size: 1.1em;} 
-        .c-btn-dislike.active { filter: none; opacity: 1; color: #8899a6; } 
+        
+        .c-btn-dislike { transform: scaleY(-1); color: #536471; opacity: 0.5; font-size: 1.1em; cursor: pointer; background: none; border: none; padding: 0; margin-top: 0;} 
+        .c-btn-dislike:hover { opacity: 0.8; }
+        .c-btn-dislike.active { opacity: 1; color: #8899a6; filter: grayscale(0%); } 
 
-        .comment-edit-row { display: flex; gap: 15px; margin-top: 10px; font-size: 0.85em; border-top: 1px dashed #cfd9de; padding-top: 8px; }
-        .btn-text-action { background: none; border: none; color: #536471; cursor: pointer; padding: 0; font-weight: 600; }
-        .btn-text-action:hover { text-decoration: underline; }
+        .btn-text-action { background: none; border: none; color: #536471; cursor: pointer; padding: 0; font-weight: 600; font-size: 1em;}
+        .btn-text-action:hover { color: #1da1f2; text-decoration: underline; }
         .btn-text-danger { color: #f4212e; }
+        .btn-text-danger:hover { color: #c62828; }
+        .btn-cancel-edit { background: #eff3f4; color: #0f1419; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        .btn-cancel-edit:hover { background: #cfd9de; }
 
-        .comment-form-container { display: none; gap: 12px; margin-top: 15px; padding: 15px; background: white; border-radius: 16px; border: 1px solid #cfd9de; animation: fadeIn 0.3s ease; }
+        .reaction-bubble-popup { display: none; position: absolute; bottom: 30px; left: -10px; background: white; border: 1px solid #cfd9de; border-radius: 30px; padding: 5px 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); z-index: 50; flex-direction: row; gap: 8px; animation: popUp 0.2s ease; }
+        @keyframes popUp { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .reaction-emoji { cursor: pointer; font-size: 1.2em; transition: 0.2s; }
+        .reaction-emoji:hover { transform: scale(1.2); }
+        .reaction-add { background: #eff3f4; border-radius: 50%; width: 24px; height: 24px; display: flex; justify-content: center; align-items: center; font-weight: bold; cursor: pointer; color: #536471; font-size: 0.8em; margin-top: 2px;}
+
+        .comment-form-container { display: none; padding-top: 15px; width: 100%; box-sizing: border-box; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-        .comment-input { flex: 1; padding: 8px 0; border: none; outline: none; background: transparent; font-size: 1em; color: #0f1419; font-family: inherit;}
+        .comment-input { flex: 1; padding: 8px 15px; border: none; outline: none; background: transparent; font-size: 0.95em; color: #0f1419; font-family: inherit; border-left: 2px solid #1da1f2;}
         .btn-send { background: #1da1f2; color: white; border: none; padding: 6px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.9em; transition: 0.2s;}
         .btn-send:hover { background: #1a91da; }
 
-        /* WRITE REPLY BAR AT BOTTOM OF POST */
-        .write-reply-bar { padding: 15px 25px; background: white; border-top: 1px solid #eff3f4; display: flex; gap: 12px; align-items: center; }
-
-        .alert-box { background: #fff3e0; border: 1px solid #ffe0b2; padding: 15px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(239,108,0,0.05); }
-        .alert-title { color: #ef6c00; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 1em; }
-
-        .toxic-warning { background: #fdf2f2; border: 1px solid #f8d7da; color: #721c24; padding: 10px 15px; border-radius: 12px; font-size: 0.95em; display: flex; justify-content: space-between; align-items: center; margin-top: 5px; }
-        .btn-reveal { background: white; border: 1px solid #f5c6cb; color: #721c24; padding: 5px 12px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.85em; transition: 0.2s; }
-        .btn-reveal:hover { background: #f8d7da; }
+        .write-reply-bar { padding: 20px 25px; background: #fcfdfe; border-top: 1px solid #eff3f4; display: flex; gap: 12px; align-items: center; position: relative;}
 
         .action-menu-dropdown { display: none; position: absolute; right: 0; top: 30px; background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border-radius: 16px; z-index: 100; min-width: 220px; padding: 5px 0; overflow: hidden; border: 1px solid #eff3f4; }
         .action-menu-dropdown a, .action-menu-dropdown button { display: block; width: 100%; padding: 12px 20px; color: #0f1419; text-decoration: none; font-size: 0.95em; font-weight: 600; border: none; background: none; text-align: left; transition: 0.2s; cursor: pointer; font-family: inherit; }
@@ -142,7 +159,11 @@
         .modal-user-list { list-style: none; padding: 0; margin: 0; max-height: 60vh; overflow-y: auto; flex: 1; }
         .modal-user-list li { padding: 15px 20px; border-bottom: 1px solid #f7f9fa; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
         .modal-user-list li:hover { background: #fcfdfe; }
-        .modal-user-list a { text-decoration: none; color: #0f1419; font-weight: bold; font-size: 1.05em; }
+        
+        .btn-follow-back { background: #0f1419; color: white; border: none; padding: 6px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-follow-back:hover { background: #272c30; }
+        .btn-message { background: white; color: #0f1419; border: 1px solid #cfd9de; padding: 6px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-message:hover { background: #f7f9fa; }
     </style>
 </head>
 <body>
@@ -162,7 +183,6 @@
     $myFollowingList = $me ? $me->following()->where('status', 'accepted')->pluck('following_id')->toArray() : [];
     $followersOfMeList = $me ? $me->followers()->where('status', 'accepted')->pluck('follower_id')->toArray() : [];
     
-    $hasMyStory = false; 
     $myBubble = $me->active_status ?? null;
 @endphp
 
@@ -177,14 +197,13 @@
             @auth
                 <div class="sidebar-profile">
                     <div class="profile-avatar-wrapper">
-                        @if($hasMyStory) <div class="story-ring"></div> @endif
                         <a href="/accounts/{{ Auth::id() }}" style="text-decoration: none;">
-                            <div class="sidebar-avatar" style="background: {{ getAvatarGradient(Auth::id()) }};">
+                            <div class="sidebar-avatar" style="background: {{ getAvatarGradient(Auth::id()) }}; border: none;">
                                 {{ substr(Auth::user()->name, 0, 1) }}
                             </div>
                         </a>
                         @if($myBubble)
-                            <div class="status-bubble-sidebar" onclick="window.location.href='/accounts/{{ Auth::id() }}'">💭 {{ $myBubble }}</div>
+                            <div class="status-bubble-sidebar">💭 {{ $myBubble }}</div>
                         @endif
                     </div>
                     
@@ -223,7 +242,7 @@
                 <li><a href="/" onclick="if(window.location.pathname=='/') { window.scrollTo({top: 0, behavior: 'smooth'}); return false; }">🏠 Home</a></li>
                 <li><a href="/accounts">🔍 Explore Users</a></li>
                 <li><a href="/messages">✉️ Messages</a></li>
-                <li><a href="/communities">👥 Communities</a></li>
+                <li><a href="/communities">👥 Community</a></li> 
                 <li><a href="/settings">⚙️ Settings</a></li>
             </ul>
 
@@ -249,21 +268,32 @@
 
         @auth
             @php
-                $placeholders = ['What is happening?!', 'Share your thoughts today...', 'Voice your opinion!', 'Tweet your ideas!'];
+                $placeholders = ['What is happening?!', 'Share your thoughts today...','What\'s on your mind?','Drop a thought here...','Tell the world what you think...','Any good news to share?','Spill the tea...','What\'s the highlight of your day?','Got something to say?','Start a new conversation...','Write your story here...'];
                 $randomPlaceholder = $placeholders[array_rand($placeholders)];
             @endphp
             <div class="compose-area">
-                <a href="/accounts/{{ Auth::id() }}">
-                    <div class="sidebar-avatar" style="width: 50px; height: 50px; font-size: 18px; margin: 0; background: {{ getAvatarGradient(Auth::id()) }}; border:none;">
-                        {{ substr(Auth::user()->name, 0, 1) }}
-                    </div>
-                </a>
+                <div class="sidebar-avatar" style="width: 50px; height: 50px; font-size: 18px; margin: 0; background: {{ getAvatarGradient(Auth::id()) }}; border:none; cursor:default;">
+                    {{ substr(Auth::user()->name, 0, 1) }}
+                </div>
                 <form action="/posts" method="POST" style="flex: 1;">
                     @csrf
                     <div class="compose-input-wrapper">
-                        <textarea name="content" class="compose-input" rows="2" placeholder="{{ $randomPlaceholder }}" maxlength="350" oninput="updateCount(this)" required></textarea>
-                        <div class="compose-actions">
-                            <button type="button" class="btn-emoji" title="Add Emoji">😀</button>
+                        <textarea name="content" class="compose-input" rows="2" placeholder="{{ $randomPlaceholder }}" maxlength="350" oninput="updateCount(this)" required id="main-compose"></textarea>
+
+                        <div class="compose-actions" style="justify-content: space-between;">
+                            
+                            <div style="display: flex; align-items: center; gap: 10px; position: relative;">
+                                <div class="emoji-picker-popup" id="emoji-box-main" style="left: 0;">
+                                    <span class="emoji-item" onclick="insertEmoji('main-compose', '😀')">😀</span>
+                                    <span class="emoji-item" onclick="insertEmoji('main-compose', '😂')">😂</span>
+                                    <span class="emoji-item" onclick="insertEmoji('main-compose', '🥰')">🥰</span>
+                                    <span class="emoji-item" onclick="insertEmoji('main-compose', '🙏')">🙏</span>
+                                    <span class="emoji-item" onclick="insertEmoji('main-compose', '🔥')">🔥</span>
+                                </div>
+
+                                <button type="button" class="btn-emoji" title="Add Emoji" onclick="toggleEmojiBox('emoji-box-main')">😀</button>
+                            </div>
+                            
                             <div style="display: flex; align-items: center; gap: 15px;">
                                 <span id="charCount" style="color: #536471; font-size: 0.85em; font-weight: bold;">0/350</span>
                                 <button type="submit" class="btn-post">Post</button>
@@ -292,11 +322,18 @@
 
                         <div class="post-header">
                             <div style="display: flex; gap: 12px; align-items: flex-start;">
-                                <a href="/accounts/{{ $post->account->id }}" style="text-decoration: none;">
-                                    <div class="sidebar-avatar" style="width: 48px; height: 48px; font-size: 16px; margin: 0; background: {{ getAvatarGradient($post->account_id) }}; border:none;">
-                                        {{ substr($post->account->name, 0, 1) }}
-                                    </div>
-                                </a>
+                                
+                                <div style="position: relative; width: 48px; height: 48px;">
+                                    <a href="/accounts/{{ $post->account->id }}" style="text-decoration: none;">
+                                        <div class="sidebar-avatar" style="width: 100%; height: 100%; font-size: 16px; margin: 0; background: {{ getAvatarGradient($post->account_id) }}; border:none;">
+                                            {{ substr($post->account->name, 0, 1) }}
+                                        </div>
+                                    </a>
+                                    @if($isMyPost && $myBubble)
+                                        <div class="status-bubble-feed">💭 {{ $myBubble }}</div>
+                                    @endif
+                                </div>
+
                                 <div style="padding-top: 2px;">
                                     <a href="/accounts/{{ $post->account->id }}" class="post-name">{{ $post->account->name }}</a>
                                     <div style="margin-top: 2px;">
@@ -349,31 +386,20 @@
                     </div>
 
                     <div class="comment-section-wrapper" id="comment-wrapper-{{ $post->id }}">
-                        @auth
-                        <div class="write-reply-bar">
-                            <a href="/accounts/{{ Auth::id() }}">
-                                <div class="sidebar-avatar" style="width: 35px; height: 35px; font-size: 14px; margin: 0; background: {{ getAvatarGradient(Auth::id()) }}; border:none;">
-                                    {{ substr(Auth::user()->name, 0, 1) }}
-                                </div>
-                            </a>
-                            <form action="/comments" method="POST" style="flex: 1; display: flex; gap: 10px; background: #f7f9fa; border-radius: 20px; padding: 5px 5px 5px 15px; border: 1px solid #eff3f4;">
-                                @csrf
-                                <input type="hidden" name="post_id" value="{{ $post->id }}">
-                                <input type="text" name="content" class="comment-input" placeholder="Post your reply..." required autocomplete="off" style="padding: 5px 0;">
-                                <button type="button" class="btn-emoji" title="Add Emoji">😀</button>
-                                <button type="submit" class="btn-send">Send</button>
-                            </form>
-                        </div>
-                        @endauth
-
+                        
                         <div class="comment-list-area">
+                            @if($post->comments->count() > 0)
+                            <div class="sort-bar">
+                                <span class="sort-option active" onclick="toggleSort(this)">Date ↓</span>
+                                <span class="sort-option" onclick="toggleSort(this)">Likes ↓</span>
+                                <span class="sort-option" onclick="toggleSort(this)">Comments ↓</span>
+                            </div>
+                            @endif
+
                             @if($post->comments->count() > 0)
                                 @foreach($post->comments->where('parent_id', null) as $comment)
                                     @php 
                                         $isMyComment = Auth::id() === $comment->account_id;
-                                        // TODO: Uncomment ini kalau fungsi likes() di Comment model sudah dibuat
-                                        // $isLikedByCreator = $comment->likes()->where('account_id', $post->account_id)->exists();
-                                        // $commentLikesCount = $comment->likes()->count();
                                         $isLikedByCreator = false; 
                                         $commentLikesCount = 0; 
                                     @endphp
@@ -386,61 +412,108 @@
                                             </a>
                                         </div>
                                         <div class="comment-bubble">
+                                            
                                             <div class="comment-action-row">
                                                 <div class="comment-meta-left">
-                                                    <a href="/accounts/{{ $comment->account_id }}" style="font-weight: bold; color: #0f1419; text-decoration: none; font-size: 1.05em;">{{ $comment->account->name ?? 'Anonymous' }}</a>
-                                                    @if($isLikedByCreator)
-                                                        <span class="author-badge">❤️ Liked by Author</span>
-                                                    @endif
-                                                    <div style="color: #536471; font-size: 0.9em; margin-top: 2px;">
-                                                        @ {{ $comment->account->username ?? 'user' }} • {{ $comment->created_at->diffForHumans() }}
+                                                    <div>
+                                                        <a href="/accounts/{{ $comment->account_id }}" style="font-weight: bold; color: #0f1419; text-decoration: none; font-size: 1.05em;">{{ $comment->account->name ?? 'Anonymous' }}</a>
+                                                        <span style="color: #536471; font-size: 0.9em; margin-left: 4px;">
+                                                            @ {{ $comment->account->username ?? 'user' }} 
+                                                            • {{ $comment->created_at->diffForHumans() }}
+                                                        </span>
                                                     </div>
                                                 </div>
                                                 
-                                                <div class="comment-buttons-right">
-                                                    @auth
-                                                        <button class="c-btn c-btn-reply" onclick="toggleReplyBox({{ $comment->id }})">Reply</button>
-                                                    @endauth
-                                                    <button class="c-btn c-btn-like" onclick="toggleSimulateLike(this)">🤍 <span class="c-count">{{ $commentLikesCount }}</span></button>
+                                                <div style="display: flex; gap: 15px; align-items: center;">
+                                                    <button class="c-btn c-btn-reply" onclick="toggleReplyBox({{ $comment->id }})">Reply</button>
+                                                    <div style="position:relative;">
+                                                        <button class="c-btn c-btn-like" ondblclick="toggleReactionPopup('react-pop-{{$comment->id}}')" onclick="toggleSimulateLike(this)">
+                                                            🤍 <span class="c-count">{{ $commentLikesCount }}</span>
+                                                        </button>
+                                                        <div class="reaction-bubble-popup" id="react-pop-{{$comment->id}}" style="display:none;">
+                                                            <span class="reaction-emoji" onclick="this.parentElement.style.display='none'">👍</span>
+                                                            <span class="reaction-emoji" onclick="this.parentElement.style.display='none'">😂</span>
+                                                            <span class="reaction-emoji" onclick="this.parentElement.style.display='none'">😢</span>
+                                                            <span class="reaction-emoji" onclick="this.parentElement.style.display='none'">🔥</span>
+                                                            <span class="reaction-emoji" onclick="this.parentElement.style.display='none'">💯</span>
+                                                            <div class="reaction-add">+</div>
+                                                        </div>
+                                                    </div>
                                                     @if(!$isMyComment)
-                                                        <button class="c-btn c-btn-dislike" onclick="this.classList.toggle('active')" title="Dislike">👍</button>
+                                                        <button class="c-btn-dislike" onclick="this.classList.toggle('active')" title="Dislike">👍</button>
                                                     @endif
                                                 </div>
                                             </div>
                                             
-                                            @if($comment->is_toxic)
-                                                <div class="toxic-warning" id="warning-{{ $comment->id }}">
-                                                    <span>⚠️ Potentially inappropriate.</span>
-                                                    <button class="btn-reveal" onclick="revealToxic({{ $comment->id }})">Show</button>
-                                                </div>
-                                                <div id="comment-text-{{ $comment->id }}" style="font-size: 1.05em; color: #0f1419; display: none; margin-top: 8px;">{{ $comment->content }}</div>
-                                            @else
-                                                <div id="comment-text-{{ $comment->id }}" style="font-size: 1.05em; color: #0f1419; margin-top: 5px;">{{ $comment->content }}</div>
-                                            @endif
+                                            <div id="comment-text-{{ $comment->id }}" style="font-size: 1.05em; color: #0f1419; margin-top: 5px;">
+                                                {{ $comment->content }}
+                                            </div>
 
                                             @if($isMyComment)
-                                                <div class="comment-edit-row">
-                                                    <button onclick="toggleEditComment({{ $comment->id }})" class="btn-text-action">Edit</button>
-                                                    <form action="/comments/{{ $comment->id }}" method="POST" style="margin: 0;">
-                                                        @csrf @method('DELETE')<button type="submit" onclick="return confirm('Delete comment?')" class="btn-text-action btn-text-danger">Delete</button>
-                                                    </form>
-                                                </div>
-                                                <form action="/comments/{{ $comment->id }}" method="POST" id="edit-form-{{ $comment->id }}" style="display: none; margin-top: 10px; gap: 8px;">
-                                                    @csrf @method('PUT')
-                                                    <input type="text" name="content" value="{{ $comment->content }}" style="flex: 1; padding: 8px 15px; border: 1px solid #1da1f2; border-radius: 20px; outline: none;">
-                                                    <button type="submit" style="background: #1da1f2; color: white; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer; font-weight: bold;">Save</button>
-                                                </form>
+                                            <form action="/comments/{{ $comment->id }}" method="POST" id="edit-form-{{ $comment->id }}" style="display: none; margin-top: 10px; gap: 8px;">
+                                                @csrf @method('PUT')
+                                                <input type="text" name="content" value="{{ $comment->content }}" style="flex: 1; padding: 8px 15px; border: 1px solid #1da1f2; border-radius: 20px; outline: none;">
+                                                <button type="submit" style="background: #1da1f2; color: white; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer; font-weight: bold;">Save</button>
+                                                <button type="button" class="btn-cancel-edit" onclick="toggleEditComment({{ $comment->id }})">Cancel</button>
+                                            </form>
                                             @endif
 
+                                            <div class="comment-bottom-row">
+                                                <div class="c-actions-right">
+                                                    @if($isMyComment)
+                                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                                            <button onclick="toggleEditComment({{ $comment->id }})" class="btn-text-action">Edit</button>
+                                                            <span style="color: #cfd9de; font-weight:bold; margin-bottom: 2px;">|</span>
+                                                            <form action="/comments/{{ $comment->id }}" method="POST" style="margin: 0; display:flex;">
+                                                                @csrf @method('DELETE')<button type="submit" onclick="return confirm('Delete comment?')" class="btn-text-action btn-text-danger">Delete</button>
+                                                            </form>
+                                                        </div>
+                                                    @endif
+                                                    
+                                                    <div style="position: relative;">
+                                                        <button onclick="toggleActionMenu(event, 'drop-comment-{{$comment->id}}')" class="btn-text-action" style="font-weight: bold; font-size: 1.2em; display: inline-flex; align-items: center; justify-content: center;">⋯</button>
+                                                        <div id="drop-comment-{{$comment->id}}" class="action-menu-dropdown action-menu-popup" style="top: 25px;">
+                                                            <button type="button">🌐 Translate</button>
+                                                            <button type="button">➡️ Forward</button>
+                                                            <button type="button">📋 Copy Text</button>
+                                                            <button type="button">🔗 Copy Link Text</button>
+                                                            <button type="button" class="text-danger">🚫 Report Message</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                             @auth
-                                                <form action="/comments" method="POST" id="reply-form-{{ $comment->id }}" class="comment-form-container">
-                                                    @csrf
-                                                    <input type="hidden" name="post_id" value="{{ $post->id }}">
-                                                    <input type="hidden" name="parent_id" value="{{ $comment->id }}">
-                                                    <button type="button" class="btn-emoji" title="Add Emoji">😀</button>
-                                                    <input type="text" name="content" class="comment-input" placeholder="Reply to {{ $comment->account->name }}..." required autocomplete="off">
-                                                    <button type="submit" class="btn-send">Reply</button>
-                                                </form>
+                                                <div id="reply-form-{{ $comment->id }}" class="comment-form-container">
+                                                    <div style="display: flex; gap: 12px; align-items: center; margin-top: 5px; width: 100%; box-sizing: border-box;">
+                                                        
+                                                        <a href="/accounts/{{ Auth::id() }}" style="flex-shrink: 0; text-decoration: none;">
+                                                            <div class="sidebar-avatar" style="width: 32px; height: 32px; font-size: 13px; margin: 0; background: {{ getAvatarGradient(Auth::id()) }}; border:none;">
+                                                                {{ substr(Auth::user()->name, 0, 1) }}
+                                                            </div>
+                                                        </a>
+
+                                                        <form action="/comments" method="POST" style="flex: 1; display: flex; gap: 8px; background: #f7f9fa; border-radius: 30px; padding: 6px 6px 6px 15px; border: 1px solid #eff3f4; align-items: center; margin: 0;">
+                                                            @csrf
+                                                            <input type="hidden" name="post_id" value="{{ $post->id }}">
+                                                            <input type="hidden" name="parent_id" value="{{ $comment->id }}">
+                                                            <input type="text" name="content" class="comment-input" placeholder="Reply to {{ $comment->account->name }}..." required autocomplete="off" style="padding: 5px 0; border: none; flex: 1; width: 100%; background: transparent;" id="reply-input-{{$comment->id}}">
+                                                            
+                                                            <div style="position: relative; display: flex; align-items: center;">
+                                                                <div class="emoji-picker-popup popup-up" id="emoji-box-reply-{{$comment->id}}" style="right: 0; left: auto;">
+                                                                    <span class="emoji-item" onclick="insertEmoji('reply-input-{{$comment->id}}', '😀')">😀</span>
+                                                                    <span class="emoji-item" onclick="insertEmoji('reply-input-{{$comment->id}}', '😂')">😂</span>
+                                                                    <span class="emoji-item" onclick="insertEmoji('reply-input-{{$comment->id}}', '🥰')">🥰</span>
+                                                                    <span class="emoji-item" onclick="insertEmoji('reply-input-{{$comment->id}}', '🙏')">🙏</span>
+                                                                    <span class="emoji-item" onclick="insertEmoji('reply-input-{{$comment->id}}', '🔥')">🔥</span>
+                                                                </div>
+                                                                <button type="button" class="btn-emoji" title="Add Emoji" onclick="toggleEmojiBox('emoji-box-reply-{{$comment->id}}')">😀</button>
+                                                            </div>
+
+                                                            <button type="submit" class="btn-send">Reply</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
                                             @endauth
                                         </div>
                                     </div>
@@ -452,51 +525,70 @@
                                         <div class="reply-thread-wrapper" id="thread-{{ $comment->id }}">
                                             @foreach($comment->replies as $reply)
                                                 @php $isMyReply = Auth::id() === $reply->account_id; @endphp
-                                                <div class="comment-item" style="margin-bottom: 12px;">
-                                                    <div class="comment-avatar">
+                                                <div class="comment-item" style="margin-bottom: 12px; padding: 0;">
+                                                    <div class="comment-avatar" style="width: 32px; height: 32px;">
                                                         <a href="/accounts/{{ $reply->account_id }}" style="text-decoration: none;">
-                                                            <div class="sidebar-avatar" style="width: 32px; height: 32px; font-size: 13px; margin: 0; background: {{ getAvatarGradient($reply->account_id) }}; border:none;">
+                                                            <div class="sidebar-avatar" style="width: 100%; height: 100%; font-size: 13px; margin: 0; background: {{ getAvatarGradient($reply->account_id) }}; border:none;">
                                                                 {{ substr($reply->account->name ?? 'A', 0, 1) }}
                                                             </div>
                                                         </a>
                                                     </div>
                                                     <div class="comment-bubble" style="background: #ffffff; padding: 12px 16px;">
+                                                        
                                                         <div class="comment-action-row">
                                                             <div class="comment-meta-left">
-                                                                <a href="/accounts/{{ $reply->account_id }}" style="font-weight: bold; color: #0f1419; text-decoration: none;">{{ $reply->account->name ?? 'Anonymous' }}</a>
-                                                                <div style="color: #536471; font-size: 0.8em; margin-top: 2px;">@ {{ $reply->account->username ?? 'user' }} • {{ $reply->created_at->diffForHumans() }}</div>
+                                                                <div>
+                                                                    <a href="/accounts/{{ $reply->account_id }}" style="font-weight: bold; color: #0f1419; text-decoration: none;">{{ $reply->account->name ?? 'Anonymous' }}</a>
+                                                                    <span style="color: #536471; font-size: 0.8em; margin-left: 4px;">
+                                                                        @ {{ $reply->account->username ?? 'user' }} 
+                                                                        • {{ $reply->created_at->diffForHumans() }}
+                                                                    </span>
+                                                                </div>
                                                             </div>
-                                                            <div class="comment-buttons-right">
+                                                            
+                                                            <div style="display: flex; gap: 15px; align-items: center;">
                                                                 <button class="c-btn c-btn-like" onclick="toggleSimulateLike(this)">🤍 <span class="c-count">0</span></button>
                                                                 @if(!$isMyReply)
-                                                                    <button class="c-btn c-btn-dislike" onclick="this.classList.toggle('active')" title="Dislike">👍</button>
+                                                                    <button class="c-btn-dislike" onclick="this.classList.toggle('active')" title="Dislike">👍</button>
                                                                 @endif
                                                             </div>
                                                         </div>
                                                         
-                                                        @if($reply->is_toxic)
-                                                            <div class="toxic-warning" id="warning-{{ $reply->id }}" style="padding: 6px 10px;">
-                                                                <span>⚠️ Potentially inappropriate.</span>
-                                                                <button class="btn-reveal" style="padding: 2px 8px;" onclick="revealToxic({{ $reply->id }})">Show</button>
-                                                            </div>
-                                                            <div id="comment-text-{{ $reply->id }}" style="font-size: 0.95em; color: #0f1419; display: none; margin-top: 5px;">{{ $reply->content }}</div>
-                                                        @else
-                                                            <div id="comment-text-{{ $reply->id }}" style="font-size: 0.95em; color: #0f1419; margin-top: 5px;">{{ $reply->content }}</div>
-                                                        @endif
+                                                        <div id="comment-text-{{ $reply->id }}" style="font-size: 0.95em; color: #0f1419; margin-top: 5px;">{{ $reply->content }}</div>
 
                                                         @if($isMyReply)
-                                                            <div class="comment-edit-row">
-                                                                <button onclick="toggleEditComment({{ $reply->id }})" class="btn-text-action">Edit</button>
-                                                                <form action="/comments/{{ $reply->id }}" method="POST" style="margin: 0;">
-                                                                    @csrf @method('DELETE')<button type="submit" onclick="return confirm('Delete reply?')" class="btn-text-action btn-text-danger">Delete</button>
-                                                                </form>
-                                                            </div>
-                                                            <form action="/comments/{{ $reply->id }}" method="POST" id="edit-form-{{ $reply->id }}" style="display: none; margin-top: 10px; gap: 8px;">
-                                                                @csrf @method('PUT')
-                                                                <input type="text" name="content" value="{{ $reply->content }}" style="flex: 1; padding: 6px 12px; border: 1px solid #1da1f2; border-radius: 20px; outline: none; font-size: 0.9em;">
-                                                                <button type="submit" style="background: #1da1f2; color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.85em; font-weight: bold;">Save</button>
-                                                            </form>
+                                                        <form action="/comments/{{ $reply->id }}" method="POST" id="edit-form-{{ $reply->id }}" style="display: none; margin-top: 10px; gap: 8px;">
+                                                            @csrf @method('PUT')
+                                                            <input type="text" name="content" value="{{ $reply->content }}" style="flex: 1; padding: 6px 12px; border: 1px solid #1da1f2; border-radius: 20px; outline: none; font-size: 0.9em;">
+                                                            <button type="submit" style="background: #1da1f2; color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.85em; font-weight: bold;">Save</button>
+                                                            <button type="button" class="btn-cancel-edit" onclick="toggleEditComment({{ $reply->id }})">Cancel</button>
+                                                        </form>
                                                         @endif
+
+                                                        <div class="comment-bottom-row">
+                                                            <div class="c-actions-right">
+                                                                @if($isMyReply)
+                                                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                                                        <button onclick="toggleEditComment({{ $reply->id }})" class="btn-text-action">Edit</button>
+                                                                        <span style="color: #cfd9de; font-weight:bold; margin-bottom: 2px;">|</span>
+                                                                        <form action="/comments/{{ $reply->id }}" method="POST" style="margin: 0; display:flex;">
+                                                                            @csrf @method('DELETE')<button type="submit" onclick="return confirm('Delete reply?')" class="btn-text-action btn-text-danger">Delete</button>
+                                                                        </form>
+                                                                    </div>
+                                                                @endif
+                                                                
+                                                                <div style="position: relative;">
+                                                                    <button onclick="toggleActionMenu(event, 'drop-reply-{{$reply->id}}')" class="btn-text-action" style="font-weight: bold; font-size: 1.2em; display: inline-flex; align-items: center; justify-content: center;">⋯</button>
+                                                                    <div id="drop-reply-{{$reply->id}}" class="action-menu-dropdown action-menu-popup" style="top: 25px;">
+                                                                        <button type="button">🌐 Translate</button>
+                                                                        <button type="button">➡️ Forward</button>
+                                                                        <button type="button">📋 Copy Text</button>
+                                                                        <button type="button">🔗 Copy Link Text</button>
+                                                                        <button type="button" class="text-danger">🚫 Report Message</button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             @endforeach
@@ -505,6 +597,32 @@
                                 @endforeach
                             @endif
                         </div>
+                        
+                        @auth
+                        <div class="write-reply-bar">
+                            <a href="/accounts/{{ Auth::id() }}">
+                                <div class="sidebar-avatar" style="width: 35px; height: 35px; font-size: 14px; margin: 0; background: {{ getAvatarGradient(Auth::id()) }}; border:none;">
+                                    {{ substr(Auth::user()->name, 0, 1) }}
+                                </div>
+                            </a>
+                            <form action="/comments" method="POST" style="flex: 1; display: flex; gap: 10px; background: #f7f9fa; border-radius: 20px; padding: 5px 5px 5px 15px; border: 1px solid #eff3f4; position: relative;">
+                                @csrf
+                                <input type="hidden" name="post_id" value="{{ $post->id }}">
+                                <input type="text" name="content" class="comment-input" placeholder="Add your comment..." required autocomplete="off" style="padding: 5px 0; border:none;" id="reply-input-{{$post->id}}">
+                                
+                                <div class="emoji-picker-popup" id="emoji-box-reply-{{$post->id}}" style="bottom: 45px;">
+                                    <span class="emoji-item" onclick="insertEmoji('reply-input-{{$post->id}}', '😀')">😀</span>
+                                    <span class="emoji-item" onclick="insertEmoji('reply-input-{{$post->id}}', '😂')">😂</span>
+                                    <span class="emoji-item" onclick="insertEmoji('reply-input-{{$post->id}}', '🥰')">🥰</span>
+                                    <span class="emoji-item" onclick="insertEmoji('reply-input-{{$post->id}}', '🙏')">🙏</span>
+                                    <span class="emoji-item" onclick="insertEmoji('reply-input-{{$post->id}}', '🔥')">🔥</span>
+                                </div>
+                                
+                                <button type="button" class="btn-emoji" title="Add Emoji" onclick="toggleEmojiBox('emoji-box-reply-{{$post->id}}')">😀</button>
+                                <button type="submit" class="btn-send">Send</button>
+                            </form>
+                        </div>
+                        @endauth
                     </div>
                 </div>
             @endforeach
@@ -535,6 +653,12 @@
                                 <a href="/accounts/{{ $f->follower->id }}" style="display: block; font-weight:bold; color:#0f1419; text-decoration:none;">{{ $f->follower->name }}</a>
                                 <div style="color: #536471; font-size: 0.9em;">@ {{ $f->follower->username }}</div>
                             </div>
+                            
+                            @if(!in_array($f->follower->id, $myFollowingList))
+                                <button class="btn-follow-back">Follow Back</button>
+                            @else
+                                <button class="btn-message">Message</button>
+                            @endif
                         </div>
                     </li>
                 @endforeach
@@ -565,6 +689,7 @@
                                 <a href="/accounts/{{ $g->following->id }}" style="display: block; font-weight:bold; color:#0f1419; text-decoration:none;">{{ $g->following->name }}</a>
                                 <div style="color: #536471; font-size: 0.9em;">@ {{ $g->following->username }}</div>
                             </div>
+                            <button class="btn-message">Message</button>
                         </div>
                     </li>
                 @endforeach
@@ -615,10 +740,21 @@
     
     function toggleReplyBox(commentId) {
         const replyForm = document.getElementById('reply-form-' + commentId);
-        replyForm.style.display = (replyForm.style.display === 'flex') ? 'none' : 'flex';
-        if (replyForm.style.display === 'flex') replyForm.querySelector('.comment-input').focus();
+        replyForm.style.display = (replyForm.style.display === 'block') ? 'none' : 'block';
+        if (replyForm.style.display === 'block') replyForm.querySelector('.comment-input').focus();
     }
     
+    function toggleSort(element) {
+        let parent = element.parentElement;
+        parent.querySelectorAll('.sort-option').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+        if(element.innerText.includes('↓')) {
+            element.innerText = element.innerText.replace('↓', '↑');
+        } else {
+            element.innerText = element.innerText.replace('↑', '↓');
+        }
+    }
+
     function revealToxic(commentId) {
         document.getElementById('warning-' + commentId).style.display = 'none';
         document.getElementById('comment-text-' + commentId).style.display = 'block';
@@ -632,13 +768,49 @@
         const menu = document.getElementById(menuId);
         menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
     }
+    
+    function toggleEmojiBox(id) {
+        let box = document.getElementById(id);
+        box.style.display = (box.style.display === 'grid') ? 'none' : 'grid';
+    }
+
+    function insertEmoji(inputId, emoji) {
+        let input = document.getElementById(inputId);
+        input.value += emoji;
+        updateCount(input);
+    }
+    
+    function toggleReactionPopup(id) {
+        let popup = document.getElementById(id);
+        popup.style.display = 'flex';
+    }
 
     window.onclick = function(e) { 
         if (e.target.classList.contains('modal')) e.target.style.display = "none";
+        
         if (!e.target.matches('.action-menu-popup') && !e.target.closest('button')) {
             document.querySelectorAll('.action-menu-popup').forEach(menu => {
                 menu.style.display = 'none';
             });
+        }
+        
+        if (!e.target.closest('.emoji-picker-popup') && !e.target.closest('.btn-emoji')) {
+            document.querySelectorAll('.emoji-picker-popup').forEach(box => {
+                box.style.display = 'none';
+            });
+        }
+        
+        if (!e.target.closest('.comment-form-container') && !e.target.closest('.c-btn-reply')) {
+            document.querySelectorAll('.comment-form-container').forEach(form => {
+                let input = form.querySelector('.comment-input');
+                if (input && input.value.trim() === '') {
+                    form.style.display = 'none';
+                }
+            });
+        }
+        
+        if (!e.target.closest('.reaction-bubble-popup') && !e.target.closest('.c-btn-like')) {
+            document.querySelectorAll('.reaction-bubble-popup').forEach(pop => pop.style.display = 'none');
         }
     }
 
@@ -653,6 +825,24 @@
         } else {
             btn.classList.add('active');
             btn.innerHTML = `❤️ <span class="c-count">${current + 1}</span>`;
+        }
+    }
+
+    function toggleSimulateLike(btn) {
+        const isActive = btn.classList.contains('active');
+        let countSpan = btn.querySelector('span'); 
+        
+        if (!countSpan) return; 
+        let current = parseInt(countSpan.innerText.replace(/[^0-9]/g, '')) || 0;
+        
+        if (isActive) {
+            btn.classList.remove('active');
+            btn.innerHTML = `🤍 <span>${current - 1}</span>`;
+            btn.style.color = "#536471";
+        } else {
+            btn.classList.add('active');
+            btn.innerHTML = `❤️ <span>${current + 1}</span>`;
+            btn.style.color = "#f91880"; 
         }
     }
 </script>

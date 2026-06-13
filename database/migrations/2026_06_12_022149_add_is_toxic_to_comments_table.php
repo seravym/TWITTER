@@ -9,7 +9,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('comments', function (Blueprint $table) {
-            // Kolom penanda apakah komentar ini mengandung kata toxic/kasar
             $table->boolean('is_toxic')->default(false)->after('content');
         });
     }
