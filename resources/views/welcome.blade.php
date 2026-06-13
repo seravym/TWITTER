@@ -169,6 +169,12 @@
 <body>
 
 @php
+    function parseMentions($text) {
+        return preg_replace('/@(\w+)/', '<a href="/accounts/$1" style="color: #1da1f2; text-decoration: none; font-weight: bold;">@$1</a>', $text);
+    }
+@endphp
+
+@php
     function getAvatarGradient($id) {
         $gradients = [
             'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)', 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
@@ -283,13 +289,6 @@
                         <div class="compose-actions" style="justify-content: space-between;">
                             
                             <div style="display: flex; align-items: center; gap: 10px; position: relative;">
-                                <div class="emoji-picker-popup" id="emoji-box-main" style="left: 0;">
-                                    <span class="emoji-item" onclick="insertEmoji('main-compose', '😀')">😀</span>
-                                    <span class="emoji-item" onclick="insertEmoji('main-compose', '😂')">😂</span>
-                                    <span class="emoji-item" onclick="insertEmoji('main-compose', '🥰')">🥰</span>
-                                    <span class="emoji-item" onclick="insertEmoji('main-compose', '🙏')">🙏</span>
-                                    <span class="emoji-item" onclick="insertEmoji('main-compose', '🔥')">🔥</span>
-                                </div>
 
                                 <button type="button" class="btn-emoji" title="Add Emoji" onclick="toggleEmojiBox('emoji-box-main')">😀</button>
                             </div>
@@ -446,17 +445,34 @@
                                             </div>
                                             
                                             <div id="comment-text-{{ $comment->id }}" style="font-size: 1.05em; color: #0f1419; margin-top: 5px;">
-                                                {{ $comment->content }}
+                                                <p class="comment-text" style="margin: 0;">{!! parseMentions($comment->content) !!}</p>
                                             </div>
 
                                             @if($isMyComment)
-                                            <form action="/comments/{{ $comment->id }}" method="POST" id="edit-form-{{ $comment->id }}" style="display: none; margin-top: 10px; gap: 8px;">
-                                                @csrf @method('PUT')
-                                                <input type="text" name="content" value="{{ $comment->content }}" style="flex: 1; padding: 8px 15px; border: 1px solid #1da1f2; border-radius: 20px; outline: none;">
+                                        <form action="/comments/{{ $comment->id }}" method="POST" id="edit-form-{{ $comment->id }}" style="display: none; margin-top: 10px; gap: 8px; flex-wrap: wrap;">
+                                            @csrf @method('PUT')
+
+                                            <div style="position: relative; flex: 1; display: flex; align-items: center; gap: 8px;">
+                                                
+                                                <div class="emoji-picker-popup" id="emoji-box-edit-{{$comment->id}}" style="bottom: 45px; left: 0;">
+                                                    <span class="emoji-item" onclick="insertEmoji('edit-input-{{$comment->id}}', '😀')">😀</span>
+                                                    <span class="emoji-item" onclick="insertEmoji('edit-input-{{$comment->id}}', '😂')">😂</span>
+                                                    <span class="emoji-item" onclick="insertEmoji('edit-input-{{$comment->id}}', '🥰')">🥰</span>
+                                                    <span class="emoji-item" onclick="insertEmoji('edit-input-{{$comment->id}}', '🙏')">🙏</span>
+                                                    <span class="emoji-item" onclick="insertEmoji('edit-input-{{$comment->id}}', '🔥')">🔥</span>
+                                                </div>
+
+                                                <input type="text" id="edit-input-{{$comment->id}}" name="content" value="{{ $comment->content }}" style="flex: 1; padding: 8px 15px; border: 1px solid #1da1f2; border-radius: 20px; outline: none;">
+                                                
+                                                <button type="button" class="btn-emoji" title="Add Emoji" style="background: none; border: none; font-size: 1.2em; cursor: pointer; padding: 0;" onclick="toggleEmojiBox('emoji-box-edit-{{$comment->id}}')">😀</button>
+                                            </div>
+
+                                            <div style="display: flex; gap: 8px;">
                                                 <button type="submit" style="background: #1da1f2; color: white; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer; font-weight: bold;">Save</button>
-                                                <button type="button" class="btn-cancel-edit" onclick="toggleEditComment({{ $comment->id }})">Cancel</button>
-                                            </form>
-                                            @endif
+                                                <button type="button" class="btn-cancel-edit" onclick="toggleEditComment({{ $comment->id }})" style="background: white; color: #1da1f2; border: 1px solid #1da1f2; padding: 6px 15px; border-radius: 20px; cursor: pointer; font-weight: bold;">Cancel</button>
+                                            </div>
+                                        </form>
+                                        @endif
 
                                             <div class="comment-bottom-row">
                                                 <div class="c-actions-right">
@@ -554,7 +570,9 @@
                                                             </div>
                                                         </div>
                                                         
-                                                        <div id="comment-text-{{ $reply->id }}" style="font-size: 0.95em; color: #0f1419; margin-top: 5px;">{{ $reply->content }}</div>
+                                                        <div id="comment-text-{{ $reply->id }}" style="font-size: 0.95em; color: #0f1419; margin-top: 5px;">
+                                                            {!! parseMentions($reply->content) !!}
+                                                        </div>
 
                                                         @if($isMyReply)
                                                         <form action="/comments/{{ $reply->id }}" method="POST" id="edit-form-{{ $reply->id }}" style="display: none; margin-top: 10px; gap: 8px;">
@@ -777,6 +795,7 @@
     function insertEmoji(inputId, emoji) {
         let input = document.getElementById(inputId);
         input.value += emoji;
+        input.focus();
         updateCount(input);
     }
     
@@ -845,6 +864,22 @@
             btn.style.color = "#f91880"; 
         }
     }
+
+    function handleMention(inputElement) {
+        const text = inputElement.value;
+        const lastChar = text.slice(-1);
+        
+        if (lastChar === '@') {
+            console.log("Mendeteksi mention, ambil data dari API/Database...");
+        }
+    }
+
+
+    document.querySelectorAll('.comment-input').forEach(input => {
+        input.addEventListener('input', function() {
+            handleMention(this);
+        });
+    });
 </script>
 </body>
 </html>

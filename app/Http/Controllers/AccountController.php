@@ -22,8 +22,14 @@ class AccountController extends Controller
     return view('accounts.index', compact('accounts'));
     }
 
-    public function show(Account $account)
+    public function show($usernameOrId)
     {
+        if (is_numeric($usernameOrId)) {
+            $account = \App\Models\Account::findOrFail($usernameOrId);
+        } else {
+            $account = \App\Models\Account::where('username', $usernameOrId)->firstOrFail();
+        }
+
         $isLocked = false;
         if (Auth::id() !== $account->id) {
             $setting = \App\Models\Setting::where('account_id', $account->id)->first();
@@ -33,6 +39,7 @@ class AccountController extends Controller
                 }
             }
         }
+
         return view('accounts.show', compact('account', 'isLocked'));
     }
 

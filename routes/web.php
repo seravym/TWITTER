@@ -35,6 +35,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/accounts/{account}', [AccountController::class, 'show']);
     Route::get('/accounts/{account}/edit', [AccountController::class, 'edit']);
     Route::put('/accounts/{account}', [AccountController::class, 'update']);
+    
+    Route::get('/accounts/{username}', [AccountController::class, 'show']);
 
     // --- Route Stories ---
     Route::post('/stories', [StoryController::class, 'store'])->name('stories.store');
