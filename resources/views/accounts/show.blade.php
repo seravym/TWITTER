@@ -244,11 +244,11 @@
             </div>
         @else
             <div class="profile-tabs">
-                <div class="tab-item active" onclick="switchTab('postsArea', this)">Posts</div>
-                <div class="tab-item" onclick="switchTab('commentsArea', this)">Comments</div>
+                <div class="tab-item {{ request('tab') == 'comments' ? '' : 'active' }}" onclick="switchTab('postsArea', this); window.history.replaceState(null, '', '?tab=posts');">Posts</div>
+                <div class="tab-item {{ request('tab') == 'comments' ? 'active' : '' }}" onclick="switchTab('commentsArea', this); window.history.replaceState(null, '', '?tab=comments');">Comments</div>
             </div>
 
-            <div id="postsArea" class="tab-content active">
+            <div id="postsArea" class="tab-content {{ request('tab') == 'comments' ? '' : 'active' }}">
                 @php $userPosts = $account->posts()->latest()->get(); @endphp
                 @if($userPosts->isEmpty())
                     <div style="text-align: center; color: #536471; padding: 40px 0;">No posts yet.</div>
@@ -270,20 +270,64 @@
                 @endif
             </div>
 
-            <div id="commentsArea" class="tab-content">
-                @php $userComments = $account->comments()->latest()->get(); @endphp
+            <div id="commentsArea" class="tab-content {{ request('tab') == 'comments' ? 'active' : '' }}">
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px;">
+                    <div style="font-weight: bold; color: #0f1419; font-size: 1.1em;">All Comments</div>
+                    <select class="sort-select" style="position: static; font-size: 0.85em; padding: 6px 10px; border-radius: 12px; border: 1px solid #cfd9de; outline: none; background-color: #f7f9fa; cursor: pointer; font-weight: bold;" onchange="window.location.href='?tab=comments&comment_sort=' + this.value">
+                        <option value="latest" {{ request('comment_sort', 'latest') == 'latest' ? 'selected' : '' }}>Latest ↓</option>
+                        <option value="oldest" {{ request('comment_sort') == 'oldest' ? 'selected' : '' }}>Oldest ↑</option>
+                    </select>
+                </div>
+
+                @php 
+                    $cSort = request('comment_sort', 'latest') === 'oldest' ? 'asc' : 'desc';
+                    $userComments = $account->comments()->orderBy('created_at', $cSort)->get(); 
+                @endphp
+                
                 @if($userComments->isEmpty())
                     <div style="text-align: center; color: #536471; padding: 40px 0;">No comments yet.</div>
                 @else
                     @foreach($userComments as $comment)
-                        <div class="feed-card">
+                        <div class="feed-card" style="padding: 15px; margin: 0 -15px; border-radius: 12px; transition: background 0.2s; cursor: default;" onmouseover="this.style.backgroundColor='#f7f9fa'" onmouseout="this.style.backgroundColor='transparent'">
                             <div style="display: flex; gap: 15px;">
                                 <div class="feed-avatar" style="width: 45px; height: 45px; font-size: 18px; background: {{ getAvatarGradient($account->id) }};">
                                     {{ substr($account->name, 0, 1) }}
                                 </div>
-                                <div>
-                                    <div style="font-weight: bold; color: #0f1419;">{{ $account->name }} <span style="color: #536471; font-weight: normal; font-size: 0.9em;">• commented</span></div>
-                                    <div style="margin-top: 5px; font-size: 1.05em; line-height: 1.5;">{{ $comment->content }}</div>
+                                <div style="flex: 1;">
+                                    
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                        <div style="font-weight: bold; color: #0f1419;">
+                                            {{ $account->name }} 
+                                            <span style="color: #536471; font-weight: normal; font-size: 0.9em;">
+                                                @ {{ $account->username }} • {{ $comment->created_at->diffForHumans() }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="color: #536471; font-size: 0.9em; margin-top: 2px;">
+                                        Replying to 
+                                        @php
+                                            $targetUser = $comment->parent_id && $comment->parent ? $comment->parent->account : ($comment->post ? $comment->post->account : null);
+                                        @endphp
+                                        <a href="/accounts/{{ $targetUser->id ?? '#' }}" style="color: #1da1f2; text-decoration: none; font-weight: bold;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
+                                            @ {{ $targetUser->username ?? 'user' }}
+                                        </a>
+                                    </div>
+
+                                    <div style="margin-top: 5px; font-size: 1.05em; line-height: 1.5; color: #0f1419;">
+                                        {{ $comment->content }}
+                                    </div>
+                                    
+                                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 15px; margin-top: 12px; color: #536471; font-size: 0.9em;">
+                                        <button class="c-btn-like" onclick="toggleSimulateLike(this)" style="display: flex; align-items: center; gap: 6px; background: none; border: none; font-size: 1.15em; color: #536471; cursor: pointer; padding: 0; transition: 0.2s;">
+                                            🤍 <span class="c-count">0</span>
+                                        </button>
+                                        <a href="/posts/{{ $comment->post_id ?? '#' }}" style="display: flex; align-items: center; gap: 6px; color: #1da1f2; font-weight: bold; text-decoration: none; background: #e8f5fe; padding: 6px 14px; border-radius: 20px; transition: 0.2s;" onmouseover="this.style.backgroundColor='#d0ebff'" onmouseout="this.style.backgroundColor='#e8f5fe'">
+                                            ↗ View Post
+                                        </a>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -429,7 +473,6 @@
                 $gSort = $currentSort === 'oldest' ? 'asc' : 'desc';
                 $myFollowing = $account->following()->where('status', 'accepted')->orderBy('created_at', $gSort)->with('following')->get();
                 
-                // SISTEM FILTERISASI AUTO: Dahulukan akun sendiri, lalu yang di-follow, lalu yang belum.
                 if(Auth::check() && $myFollowing->isNotEmpty() && $currentSort === 'auto') {
                     $me = $myFollowing->filter(fn($i) => $i->following->id === Auth::id());
                     $followedByMe = $myFollowing->filter(fn($i) => $i->following->id !== Auth::id() && in_array($i->following->id, $myFollowingIdsList));
