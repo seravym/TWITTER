@@ -55,6 +55,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/comments', [CommentController::class, 'store']);
     Route::put('/comments/{comment}', [CommentController::class, 'update']);
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
+    Route::post('/comments', [CommentController::class, 'store']);
 
     // --- Fitur Follow & Request System ---
     Route::get('/follows', [FollowController::class, 'index']);
@@ -79,6 +80,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/communities/{community}/join', [CommunityController::class, 'join']);
     Route::post('/communities/{community}/leave', [CommunityController::class, 'leave']);
     Route::post('/communities/{community}/posts', [CommunityPostController::class, 'store'])->name('communities.posts.store');
+    Route::post('/posts/{id}/comments', [CommentController::class, 'store']);
 
     // --- Fitur Settings ---
     Route::get('/settings', [SettingController::class, 'show'])->name('settings.show');
