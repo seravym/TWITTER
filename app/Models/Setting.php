@@ -27,6 +27,7 @@ class Setting extends Model
         'notificationMessage' => 'boolean',
         'notificationFollow' => 'boolean',
         'notificationLike' => 'boolean',
+        'blocked_accounts' => 'array',
     ];
 
     public function account()
