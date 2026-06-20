@@ -13,6 +13,8 @@ use App\Http\Controllers\LikeController;
 use App\Http\Controllers\StoryController;
 use App\Http\Controllers\HashtagController;
 use App\Http\Controllers\BookmarkController;
+use App\Http\Controllers\CommunityPostController;
+
 
 Route::get('/', [PostController::class, 'index'])->middleware('auth');
 
@@ -76,6 +78,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/communities/{community}', [CommunityController::class, 'show']);
     Route::post('/communities/{community}/join', [CommunityController::class, 'join']);
     Route::post('/communities/{community}/leave', [CommunityController::class, 'leave']);
+    Route::post('/communities/{community}/posts', [CommunityPostController::class, 'store'])->name('communities.posts.store');
 
     // --- Fitur Settings ---
     Route::get('/settings', [SettingController::class, 'show'])->name('settings.show');

@@ -12,48 +12,55 @@ use Illuminate\Support\Facades\Auth;
 class PostController extends Controller
 {
     public function index(Request $request)
-    {
-        $feedType      = $request->query('feed', 'global');
-        $currentUserId = Auth::id();
+        {
+            $feedType      = $request->query('feed', 'global');
+            $currentUserId = Auth::id();
 
-        $acceptedFollowingIds = Auth::check()
-            ? Auth::user()->following()->where('status', 'accepted')->pluck('following_id')->toArray()
-            : [];
+            $acceptedFollowingIds = Auth::check()
+                ? Auth::user()->following()->where('status', 'accepted')->pluck('following_id')->toArray()
+                : [];
 
-        // Ambil daftar akun yang di-block oleh user ini
-        $mySetting      = Setting::where('account_id', $currentUserId)->first();
-        $blockedByMe    = $mySetting ? ($mySetting->blocked_accounts ?? []) : [];
+            // Ambil daftar akun yang di-block oleh user ini
+            $mySetting      = Setting::where('account_id', $currentUserId)->first();
+            $blockedByMe    = $mySetting ? ($mySetting->blocked_accounts ?? []) : [];
 
-        // Ambil daftar akun yang mem-block user ini
-        $blockingMe = Setting::whereJsonContains('blocked_accounts', $currentUserId)
-            ->pluck('account_id')->toArray();
+            // Ambil daftar akun yang mem-block user ini
+            $blockingMe = Setting::whereJsonContains('blocked_accounts', $currentUserId)
+                ->pluck('account_id')->toArray();
 
-        // Gabungkan — sembunyikan post dari/ke yang di-block
-        $blockedIds = array_unique(array_merge($blockedByMe, $blockingMe));
+            // Gabungkan — sembunyikan post dari/ke yang di-block
+            $blockedIds = array_unique(array_merge($blockedByMe, $blockingMe));
 
-        if ($feedType === 'following' && Auth::check()) {
-            $posts = Post::whereIn('account_id', $acceptedFollowingIds)
-                         ->orWhere('account_id', $currentUserId)
-                         ->whereNotIn('account_id', $blockedIds)
-                         ->with(['account', 'likes', 'comments', 'hashtags', 'bookmarks'])
-                         ->latest()
-                         ->get();
-        } else {
-            $privateAccountIds = Setting::where('isPrivateAccount', true)->pluck('account_id')->toArray();
+            // 1. JIKA FEED FOLLOWING
+            if ($feedType === 'following' && Auth::check()) {
+                $posts = Post::whereNull('community_id') // Sembunyikan post komunitas
+                            ->whereNotIn('account_id', $blockedIds) // Filter block list
+                            ->where(function($query) use ($currentUserId, $acceptedFollowingIds) {
+                                $query->whereIn('account_id', $acceptedFollowingIds)
+                                    ->orWhere('account_id', $currentUserId);
+                            })
+                            ->with(['account', 'likes', 'comments', 'hashtags', 'bookmarks']) // Relasi lengkap Anda
+                            ->latest()
+                            ->get();
+            
+            // 2. JIKA FEED GLOBAL
+            } else {
+                $privateAccountIds = Setting::where('isPrivateAccount', true)->pluck('account_id')->toArray();
 
-            $posts = Post::with(['account', 'likes', 'comments', 'hashtags', 'bookmarks'])
-                         ->whereNotIn('account_id', $blockedIds)
-                         ->where(function ($query) use ($currentUserId, $acceptedFollowingIds, $privateAccountIds) {
-                             $query->whereNotIn('account_id', $privateAccountIds)
-                                   ->orWhere('account_id', $currentUserId)
-                                   ->orWhereIn('account_id', $acceptedFollowingIds);
-                         })
-                         ->latest()
-                         ->get();
+                $posts = Post::whereNull('community_id') // Sembunyikan post komunitas
+                            ->whereNotIn('account_id', $blockedIds) // Filter block list
+                            ->where(function ($query) use ($currentUserId, $acceptedFollowingIds, $privateAccountIds) {
+                                $query->whereNotIn('account_id', $privateAccountIds)
+                                    ->orWhere('account_id', $currentUserId)
+                                    ->orWhereIn('account_id', $acceptedFollowingIds);
+                            })
+                            ->with(['account', 'likes', 'comments', 'hashtags', 'bookmarks']) // Relasi lengkap Anda
+                            ->latest()
+                            ->get();
+            }
+
+            return view('welcome', compact('posts', 'feedType'));
         }
-
-        return view('welcome', compact('posts', 'feedType'));
-    }
 
     public function store(Request $request)
     {
@@ -160,4 +167,5 @@ class PostController extends Controller
         // Detach lama, attach baru (sync)
         $post->hashtags()->sync($hashtagIds);
     }
+    
 }
