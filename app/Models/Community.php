@@ -26,4 +26,10 @@ class Community extends Model
                     ->withPivot('role')
                     ->withTimestamps();
     }
+
+    public function posts()
+    {
+        // Mengurutkan dari post terbaru
+        return $this->hasMany(Post::class)->latest(); 
+    }
 }
