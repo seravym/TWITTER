@@ -13,17 +13,24 @@ return new class extends Migration
     {
         Schema::create('comments', function (Blueprint $table) {
             $table->id();
-            
+
             $table->foreignId('account_id')
-                  ->constrained('accounts')
-                  ->onDelete('cascade');
-            
+                ->constrained('accounts')
+                ->onDelete('cascade');
+
             $table->foreignId('post_id')
-                  ->constrained('posts')
-                  ->onDelete('cascade');
-                  
+                ->constrained('posts')
+                ->onDelete('cascade');
+
+            $table->foreignId('parent_id')
+                ->nullable()
+                ->constrained('comments')
+                ->onDelete('cascade');
+
+            $table->boolean('is_toxic')->default(false);
+
             $table->text('content');
-            
+
             $table->timestamps();
         });
     }
