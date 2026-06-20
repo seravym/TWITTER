@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use App\Models\Like;
 use App\Models\Setting;
+use App\Models\Hashtag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -12,27 +13,40 @@ class PostController extends Controller
 {
     public function index(Request $request)
     {
-        $feedType = $request->query('feed', 'global');
+        $feedType      = $request->query('feed', 'global');
         $currentUserId = Auth::id();
 
-        $acceptedFollowingIds = Auth::check() 
-            ? Auth::user()->following()->where('status', 'accepted')->pluck('following_id')->toArray() 
+        $acceptedFollowingIds = Auth::check()
+            ? Auth::user()->following()->where('status', 'accepted')->pluck('following_id')->toArray()
             : [];
+
+        // Ambil daftar akun yang di-block oleh user ini
+        $mySetting      = Setting::where('account_id', $currentUserId)->first();
+        $blockedByMe    = $mySetting ? ($mySetting->blocked_accounts ?? []) : [];
+
+        // Ambil daftar akun yang mem-block user ini
+        $blockingMe = Setting::whereJsonContains('blocked_accounts', $currentUserId)
+            ->pluck('account_id')->toArray();
+
+        // Gabungkan — sembunyikan post dari/ke yang di-block
+        $blockedIds = array_unique(array_merge($blockedByMe, $blockingMe));
 
         if ($feedType === 'following' && Auth::check()) {
             $posts = Post::whereIn('account_id', $acceptedFollowingIds)
                          ->orWhere('account_id', $currentUserId)
-                         ->with(['account', 'likes', 'comments'])
+                         ->whereNotIn('account_id', $blockedIds)
+                         ->with(['account', 'likes', 'comments', 'hashtags', 'bookmarks'])
                          ->latest()
                          ->get();
         } else {
             $privateAccountIds = Setting::where('isPrivateAccount', true)->pluck('account_id')->toArray();
 
-            $posts = Post::with(['account', 'likes', 'comments'])
-                         ->where(function($query) use ($currentUserId, $acceptedFollowingIds, $privateAccountIds) {
-                             $query->whereNotIn('account_id', $privateAccountIds) // Tampilkan jika BUKAN akun private
-                                   ->orWhere('account_id', $currentUserId)       // ATAU postingan milik kita sendiri
-                                   ->orWhereIn('account_id', $acceptedFollowingIds); // ATAU akun private yang sudah berhasil kita follow
+            $posts = Post::with(['account', 'likes', 'comments', 'hashtags', 'bookmarks'])
+                         ->whereNotIn('account_id', $blockedIds)
+                         ->where(function ($query) use ($currentUserId, $acceptedFollowingIds, $privateAccountIds) {
+                             $query->whereNotIn('account_id', $privateAccountIds)
+                                   ->orWhere('account_id', $currentUserId)
+                                   ->orWhereIn('account_id', $acceptedFollowingIds);
                          })
                          ->latest()
                          ->get();
@@ -44,13 +58,16 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'content' => 'required|string'
+            'content' => 'required|string|max:350'
         ]);
 
-        Post::create([
-            'account_id' => Auth::id(), 
-            'content' => $request->content
+        $post = Post::create([
+            'account_id' => Auth::id(),
+            'content'    => $request->content,
         ]);
+
+        // Parse dan simpan hashtags dari konten post
+        $this->syncHashtags($post, $request->content);
 
         return redirect()->route('posts.index')->with('success', 'Post berhasil dibuat!');
     }
@@ -71,12 +88,13 @@ class PostController extends Controller
         }
 
         $request->validate([
-            'content' => 'required|string'
+            'content' => 'required|string|max:350'
         ]);
 
-        $post->update([
-            'content' => $request->content
-        ]);
+        $post->update(['content' => $request->content]);
+
+        // Re-sync hashtags setelah edit
+        $this->syncHashtags($post, $request->content);
 
         return redirect()->route('posts.index')->with('success', 'Post berhasil diperbarui!');
     }
@@ -85,6 +103,11 @@ class PostController extends Controller
     {
         if (Auth::id() !== $post->account_id) {
             abort(403, 'Anda tidak berhak menghapus postingan ini.');
+        }
+
+        // Kurangi post_count hashtag sebelum dihapus
+        foreach ($post->hashtags as $hashtag) {
+            $hashtag->decrementPostCount();
         }
 
         $post->delete();
@@ -100,15 +123,13 @@ class PostController extends Controller
         $like = Like::where('account_id', $accountId)
             ->where('post_id', $post->id)
             ->first();
-            
+
         if ($like) {
-            // unlike
             $like->delete();
         } else {
-            // like
             Like::create([
                 'account_id' => $accountId,
-                'post_id' => $post->id
+                'post_id'    => $post->id,
             ]);
         }
         return back();
@@ -116,8 +137,27 @@ class PostController extends Controller
 
     public function show($id)
     {
-        $post = \App\Models\Post::findOrFail($id);
-        
+        $post = Post::with(['account', 'likes', 'comments', 'hashtags', 'bookmarks'])->findOrFail($id);
         return view('posts.show', compact('post'));
-    }    
+    }
+
+    /**
+     * Parse hashtag (#kata) dari konten, buat atau update record di tabel hashtags,
+     * dan sync pivot hashtag_post.
+     */
+    private function syncHashtags(Post $post, string $content): void
+    {
+        preg_match_all('/#(\w+)/u', $content, $matches);
+        $tagNames = array_unique(array_map('strtolower', $matches[1]));
+
+        $hashtagIds = [];
+        foreach ($tagNames as $name) {
+            $hashtag = Hashtag::firstOrCreate(['name' => $name]);
+            $hashtag->incrementPostCount();
+            $hashtagIds[] = $hashtag->id;
+        }
+
+        // Detach lama, attach baru (sync)
+        $post->hashtags()->sync($hashtagIds);
+    }
 }
