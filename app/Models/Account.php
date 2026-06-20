@@ -117,4 +117,32 @@ class Account extends Authenticatable
     {
         return $this->hasMany(Story::class);
     }
+
+    /**
+     * Relasi one-to-many ke Bookmark
+     */
+    public function bookmarks()
+    {
+        return $this->hasMany(Bookmark::class, 'account_id');
+    }
+
+    /**
+     * Setting akun (one-to-one)
+     */
+    public function setting()
+    {
+        return $this->hasOne(Setting::class, 'account_id');
+    }
+
+    /**
+     * Cek apakah akun ini mem-block $targetId
+     */
+    public function isBlocking(int $targetId): bool
+    {
+        $setting = $this->setting;
+        if (!$setting || !$setting->blocked_accounts) {
+            return false;
+        }
+        return in_array($targetId, $setting->blocked_accounts);
+    }
 }

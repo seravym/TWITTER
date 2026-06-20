@@ -11,6 +11,8 @@ use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\StoryController;
+use App\Http\Controllers\HashtagController;
+use App\Http\Controllers\BookmarkController;
 
 Route::get('/', [PostController::class, 'index'])->middleware('auth');
 
@@ -22,20 +24,20 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    
+
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // --- Route Accounts ---
     Route::get('/accounts', [AccountController::class, 'index']);
-    
+
     // --- Fitur Status ---
     Route::post('/accounts/status', [AccountController::class, 'updateStatus'])->name('accounts.status');
-    
+
     // --- Route Profil ---
     Route::get('/accounts/{account}', [AccountController::class, 'show']);
     Route::get('/accounts/{account}/edit', [AccountController::class, 'edit']);
     Route::put('/accounts/{account}', [AccountController::class, 'update']);
-    
+
     Route::get('/accounts/{username}', [AccountController::class, 'show']);
 
     // --- Route Stories ---
@@ -78,4 +80,16 @@ Route::middleware('auth')->group(function () {
     // --- Fitur Settings ---
     Route::get('/settings', [SettingController::class, 'show'])->name('settings.show');
     Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
+    Route::post('/settings/block/{account}', [SettingController::class, 'block'])->name('settings.block');
+    Route::delete('/settings/block/{account}', [SettingController::class, 'unblock'])->name('settings.unblock');
+    Route::post('/settings/block-by-username', [SettingController::class, 'blockByUsername'])->name('settings.block-by-username');
+
+    // --- Fitur Hashtag ---
+    Route::get('/hashtags', [HashtagController::class, 'index'])->name('hashtags.index');
+    Route::get('/hashtags/{name}', [HashtagController::class, 'show'])->name('hashtags.show');
+
+    // --- Fitur Bookmark ---
+    Route::get('/bookmarks', [BookmarkController::class, 'index'])->name('bookmarks.index');
+    Route::post('/bookmarks/{post}', [BookmarkController::class, 'toggle'])->name('bookmarks.toggle');
+    Route::delete('/bookmarks/{bookmark}', [BookmarkController::class, 'destroy'])->name('bookmarks.destroy');
 });
