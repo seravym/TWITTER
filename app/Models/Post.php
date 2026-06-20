@@ -10,11 +10,16 @@ use App\Models\Bookmark;
 
 class Post extends Model
 {
-    protected $fillable = ['account_id', 'content'];
+    protected $fillable = ['account_id','community_id', 'content'];
 
     public function account()
     {
         return $this->belongsTo(Account::class, 'account_id');
+    }
+
+    public function community()
+    {
+        return $this->belongsTo(Community::class, 'community_id');
     }
 
     public function likes()
