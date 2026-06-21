@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ExploreController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DirectMessageController;
@@ -49,6 +50,7 @@ Route::middleware('auth')->group(function () {
     // --- Route Posts ---
     Route::resource('posts', PostController::class);
     Route::post('/posts/{post}/like', [LikeController::class, 'toggle'])->name('posts.like');
+    Route::get('/explore', [ExploreController::class, 'index'])->name('explore.index');
 
     // --- Fitur Komentar ---
     Route::get('/comments', [CommentController::class, 'index']);
