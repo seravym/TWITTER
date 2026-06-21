@@ -6,24 +6,27 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-
     public function up(): void
     {
-        Schema::create('posts', function (Blueprint $table) {
+        Schema::create('likes', function (Blueprint $table) {
             $table->id();
 
             $table->foreignId('account_id')
                   ->constrained('accounts')
                   ->onDelete('cascade');
 
-            $table->text('content');
+            $table->foreignId('post_id')
+                  ->constrained('posts')
+                  ->onDelete('cascade');
 
             $table->timestamps();
+
+            $table->unique(['account_id', 'post_id']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('posts');
+        Schema::dropIfExists('likes');
     }
 };

@@ -6,17 +6,22 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-
     public function up(): void
     {
-        Schema::create('posts', function (Blueprint $table) {
+        Schema::create('direct_messages', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('account_id')
+            $table->foreignId('sender_id')
                   ->constrained('accounts')
                   ->onDelete('cascade');
 
-            $table->text('content');
+            $table->foreignId('receiver_id')
+                  ->constrained('accounts')
+                  ->onDelete('cascade');
+
+            $table->text('body');
+
+            $table->timestamp('read_at')->nullable();
 
             $table->timestamps();
         });
@@ -24,6 +29,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('posts');
+        Schema::dropIfExists('direct_messages');
     }
 };
