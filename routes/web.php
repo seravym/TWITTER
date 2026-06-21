@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ExploreController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
@@ -30,3 +31,7 @@ Route::post('/logout', [AuthController::class, 'logout'])
 */
 Route::resource('posts', PostController::class)
     ->middleware('auth');
+
+Route::get('/explore', [ExploreController::class, 'index'])
+    ->middleware('auth')
+    ->name('explore.index');

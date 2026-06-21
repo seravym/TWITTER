@@ -1,6 +1,8 @@
 <h1>Timeline</h1>
 
 <a href="{{ route('posts.create') }}">Buat Tweet</a>
+ |
+ <a href="{{ route('explore.index') }}">Explore</a>
 
 <br><br>
 
