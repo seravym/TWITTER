@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('explores', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')
+                  ->nullable()
+                  ->constrained('accounts')
+                  ->nullOnDelete();
+            $table->string('term')->nullable();
             $table->timestamps();
         });
     }

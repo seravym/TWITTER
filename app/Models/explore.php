@@ -9,6 +9,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Explore extends Model
 {
+    protected $fillable = [
+        'user_id',
+        'term',
+    ];
+
     /**
      * The database table used by the model.
      *
