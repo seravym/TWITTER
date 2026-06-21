@@ -6,10 +6,14 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Tambahkan kolom blocked_accounts ke tabel settings
+     * untuk menyimpan daftar account_id yang di-block (JSON array)
+     */
     public function up(): void
     {
         Schema::table('settings', function (Blueprint $table) {
-            $table->json('blocked_accounts')->nullable();
+            $table->json('blocked_accounts')->nullable()->after('language');
         });
     }
 

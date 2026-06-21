@@ -19,15 +19,16 @@ class Setting extends Model
         'notificationLike',
         'theme',
         'language',
+        'blocked_accounts',
     ];
 
     protected $casts = [
-        'isPrivateAccount' => 'boolean',
-        'showOnlineStatus' => 'boolean',
+        'isPrivateAccount'    => 'boolean',
+        'showOnlineStatus'    => 'boolean',
         'notificationMessage' => 'boolean',
-        'notificationFollow' => 'boolean',
-        'notificationLike' => 'boolean',
-        'blocked_accounts' => 'array',
+        'notificationFollow'  => 'boolean',
+        'notificationLike'    => 'boolean',
+        'blocked_accounts'    => 'array',   // JSON di-cast ke PHP array otomatis
     ];
 
     public function account()
