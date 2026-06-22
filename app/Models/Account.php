@@ -145,4 +145,20 @@ class Account extends Authenticatable
         }
         return in_array($targetId, $setting->blocked_accounts);
     }
+
+    /**
+     * Daftar akun yang dimasukkan ke close friend list oleh akun ini
+     */
+    public function closeFriends()
+    {
+        return $this->hasMany(CloseFriend::class, 'account_id');
+    }
+
+    /**
+     * Cek apakah $friendId ada di daftar close friend akun ini
+     */
+    public function isCloseFriendOf(int $friendId): bool
+    {
+        return $this->closeFriends()->where('friend_id', $friendId)->exists();
+    }
 }

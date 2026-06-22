@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\ExploreController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DirectMessageController;
@@ -14,8 +13,7 @@ use App\Http\Controllers\LikeController;
 use App\Http\Controllers\StoryController;
 use App\Http\Controllers\HashtagController;
 use App\Http\Controllers\BookmarkController;
-use App\Http\Controllers\CommunityPostController;
-
+use App\Http\Controllers\CloseFriendController;
 
 Route::get('/', [PostController::class, 'index'])->middleware('auth');
 
@@ -50,14 +48,13 @@ Route::middleware('auth')->group(function () {
     // --- Route Posts ---
     Route::resource('posts', PostController::class);
     Route::post('/posts/{post}/like', [LikeController::class, 'toggle'])->name('posts.like');
-    Route::get('/explore', [ExploreController::class, 'index'])->name('explore.index');
+    Route::post('/posts/{post}/pin', [PostController::class, 'pin'])->name('posts.pin');
 
     // --- Fitur Komentar ---
     Route::get('/comments', [CommentController::class, 'index']);
     Route::post('/comments', [CommentController::class, 'store']);
     Route::put('/comments/{comment}', [CommentController::class, 'update']);
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
-    Route::post('/comments', [CommentController::class, 'store']);
 
     // --- Fitur Follow & Request System ---
     Route::get('/follows', [FollowController::class, 'index']);
@@ -81,8 +78,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/communities/{community}', [CommunityController::class, 'show']);
     Route::post('/communities/{community}/join', [CommunityController::class, 'join']);
     Route::post('/communities/{community}/leave', [CommunityController::class, 'leave']);
-    Route::post('/communities/{community}/posts', [CommunityPostController::class, 'store'])->name('communities.posts.store');
-    Route::post('/posts/{id}/comments', [CommentController::class, 'store']);
 
     // --- Fitur Settings ---
     Route::get('/settings', [SettingController::class, 'show'])->name('settings.show');
@@ -99,4 +94,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/bookmarks', [BookmarkController::class, 'index'])->name('bookmarks.index');
     Route::post('/bookmarks/{post}', [BookmarkController::class, 'toggle'])->name('bookmarks.toggle');
     Route::delete('/bookmarks/{bookmark}', [BookmarkController::class, 'destroy'])->name('bookmarks.destroy');
+
+    // --- Fitur Close Friend ---
+    Route::get('/close-friends', [CloseFriendController::class, 'index'])->name('close-friends.index');
+    Route::post('/close-friends/{friendId}', [CloseFriendController::class, 'store'])->name('close-friends.store');
+    Route::delete('/close-friends/{friendId}', [CloseFriendController::class, 'destroy'])->name('close-friends.destroy');
 });
