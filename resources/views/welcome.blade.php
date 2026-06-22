@@ -247,6 +247,7 @@
             <ul class="nav-menu">
                 <li><a href="/" onclick="if(window.location.pathname=='/') { window.scrollTo({top: 0, behavior: 'smooth'}); return false; }">🏠 Home</a></li>
                 <li><a href="/accounts">🔍 Explore Users</a></li>
+                <li><a href="/close-friends">🌟 Close Friends</a></li>
                 <li><a href="/messages">✉️ Messages</a></li>
                 <li><a href="/communities">👥 Community</a></li> 
                 <li><a href="/settings">⚙️ Settings</a></li>
@@ -281,18 +282,34 @@
                 <div class="sidebar-avatar" style="width: 50px; height: 50px; font-size: 18px; margin: 0; background: {{ getAvatarGradient(Auth::id()) }}; border:none; cursor:default;">
                     {{ substr(Auth::user()->name, 0, 1) }}
                 </div>
-                <form action="/posts" method="POST" style="flex: 1;">
+                <form action="/posts" method="POST" style="flex: 1;" enctype="multipart/form-data">
                     @csrf
                     <div class="compose-input-wrapper">
                         <textarea name="content" class="compose-input" rows="2" placeholder="{{ $randomPlaceholder }}" maxlength="350" oninput="updateCount(this)" required id="main-compose"></textarea>
 
-                        <div class="compose-actions" style="justify-content: space-between;">
-                            
-                            <div style="display: flex; align-items: center; gap: 10px; position: relative;">
+                        {{-- Preview media yang dipilih --}}
+                        <div id="mediaPreviewArea" style="display:none; margin-top: 10px;"></div>
 
+                        <div class="compose-actions" style="justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 10px; position: relative;">
                                 <button type="button" class="btn-emoji" title="Add Emoji" onclick="toggleEmojiBox('emoji-box-main')">😀</button>
+
+                                {{-- Tombol upload media --}}
+                                <label for="mediaInput" class="btn-emoji" title="Upload Foto/Video" style="cursor:pointer;">📷</label>
+                                <input type="file" id="mediaInput" name="media" accept="image/*,video/*" style="display:none;" onchange="previewMedia(this)">
+
+                                {{-- Visibility selector --}}
+                                <div style="display:flex; align-items:center; gap:6px; margin-left:4px;">
+                                    <button type="button" id="visPublicBtn" onclick="setVisibility('public')"
+                                        style="background:#e8f5fe;color:#1da1f2;border:1.5px solid #1da1f2;padding:5px 12px;border-radius:20px;font-size:0.82em;font-weight:700;cursor:pointer;transition:0.2s;"
+                                        title="Post ke semua orang">🌍 Public</button>
+                                    <button type="button" id="visCFBtn" onclick="setVisibility('close_friend')"
+                                        style="background:white;color:#536471;border:1.5px solid #cfd9de;padding:5px 12px;border-radius:20px;font-size:0.82em;font-weight:700;cursor:pointer;transition:0.2s;"
+                                        title="Post ke Close Friends saja">🌟 Close Friends</button>
+                                    <input type="hidden" name="visibility" id="visibilityInput" value="public">
+                                </div>
                             </div>
-                            
+
                             <div style="display: flex; align-items: center; gap: 15px;">
                                 <span id="charCount" style="color: #536471; font-size: 0.85em; font-weight: bold;">0/350</span>
                                 <button type="submit" class="btn-post">Post</button>
@@ -370,6 +387,26 @@
                         </div>
                         
                         <div class="post-content">{{ $post->content }}</div>
+                        {{-- Tampilkan media jika ada --}}
+                        @if($post->media_path)
+                            <div style="margin: 10px 0 15px; border-radius: 16px; overflow: hidden;">
+                                @if($post->media_type === 'video')
+                                    <video controls style="width:100%; max-height: 400px; border-radius: 16px; background:#000;">
+                                        <source src="{{ asset('storage/' . $post->media_path) }}" type="video/mp4">
+                                    </video>
+                                @else
+                                    <img src="{{ asset('storage/' . $post->media_path) }}" alt="Post media"
+                                        style="width:100%; max-height: 450px; object-fit: cover; border-radius: 16px; display:block;">
+                                @endif
+                            </div>
+                        @endif
+
+                        {{-- Badge close friend --}}
+                        @if($post->visibility === 'close_friend')
+                            <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(19,78,94,0.08);color:#134e5e;font-size:0.78em;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:10px;">
+                                🌟 Close Friends Only
+                            </div>
+                        @endif
                         
                         <div class="post-actions">
                             <form action="/posts/{{ $post->id }}/like" method="POST" style="margin:0;">
@@ -377,6 +414,14 @@
                             </form>
                             <button class="action-pill" onclick="toggleComments({{ $post->id }})">💬 {{ $post->comments->count() }} Comments</button>
                             @if($isMyPost)
+                                {{-- Pin / Unpin --}}
+                                <form action="{{ route('posts.pin', $post->id) }}" method="POST" style="margin:0;">
+                                    @csrf
+                                    <button type="submit" class="action-pill" title="{{ $post->is_pinned ? 'Unpin post' : 'Sematkan post' }}"
+                                        style="{{ $post->is_pinned ? 'background:#fff9eb;color:#d97706;border-color:#fcd34d;' : '' }}">
+                                        {{ $post->is_pinned ? '📌 Pinned' : '📌' }}
+                                    </button>
+                                </form>
                                 <form action="/posts/{{ $post->id }}" method="POST" style="margin:0; margin-left: auto;">
                                     @csrf @method('DELETE')<button type="submit" class="action-pill delete" onclick="return confirm('Delete post?')">🗑️ Delete</button>
                                 </form>
@@ -880,6 +925,62 @@
             handleMention(this);
         });
     });
+
+    // ── Media Preview ──────────────────────────────────────
+    function previewMedia(input) {
+        const area = document.getElementById('mediaPreviewArea');
+        area.innerHTML = '';
+        if (!input.files || !input.files[0]) { area.style.display = 'none'; return; }
+
+        const file = input.files[0];
+        const url  = URL.createObjectURL(file);
+        area.style.display = 'block';
+
+        let el;
+        if (file.type.startsWith('video/')) {
+            el = document.createElement('video');
+            el.controls = true;
+            el.style.cssText = 'width:100%;max-height:280px;border-radius:12px;background:#000;';
+            const src = document.createElement('source');
+            src.src  = url;
+            src.type = file.type;
+            el.appendChild(src);
+        } else {
+            el = document.createElement('img');
+            el.src = url;
+            el.alt = 'Preview';
+            el.style.cssText = 'width:100%;max-height:280px;object-fit:cover;border-radius:12px;display:block;';
+        }
+
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'position:relative;';
+        const removeBtn = document.createElement('button');
+        removeBtn.type  = 'button';
+        removeBtn.innerHTML = '✕';
+        removeBtn.style.cssText = 'position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;';
+        removeBtn.onclick = function() {
+            input.value = '';
+            area.innerHTML = '';
+            area.style.display = 'none';
+        };
+        wrap.appendChild(el);
+        wrap.appendChild(removeBtn);
+        area.appendChild(wrap);
+    }
+
+    // ── Visibility Selector ────────────────────────────────
+    function setVisibility(val) {
+        document.getElementById('visibilityInput').value = val;
+        const btnPublic = document.getElementById('visPublicBtn');
+        const btnCF     = document.getElementById('visCFBtn');
+        if (val === 'public') {
+            btnPublic.style.cssText = 'background:#e8f5fe;color:#1da1f2;border:1.5px solid #1da1f2;padding:5px 12px;border-radius:20px;font-size:0.82em;font-weight:700;cursor:pointer;transition:0.2s;';
+            btnCF.style.cssText     = 'background:white;color:#536471;border:1.5px solid #cfd9de;padding:5px 12px;border-radius:20px;font-size:0.82em;font-weight:700;cursor:pointer;transition:0.2s;';
+        } else {
+            btnCF.style.cssText     = 'background:rgba(19,78,94,0.12);color:#134e5e;border:1.5px solid #134e5e;padding:5px 12px;border-radius:20px;font-size:0.82em;font-weight:700;cursor:pointer;transition:0.2s;';
+            btnPublic.style.cssText = 'background:white;color:#536471;border:1.5px solid #cfd9de;padding:5px 12px;border-radius:20px;font-size:0.82em;font-weight:700;cursor:pointer;transition:0.2s;';
+        }
+    }
 </script>
 </body>
 </html>

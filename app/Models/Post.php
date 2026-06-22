@@ -7,19 +7,26 @@ use App\Models\Account;
 use App\Models\Like;
 use App\Models\Hashtag;
 use App\Models\Bookmark;
+use App\Models\CloseFriend;
 
 class Post extends Model
 {
-    protected $fillable = ['account_id','community_id', 'content'];
+    protected $fillable = [
+        'account_id',
+        'content',
+        'media_path',
+        'media_type',
+        'is_pinned',
+        'visibility',
+    ];
+
+    protected $casts = [
+        'is_pinned' => 'boolean',
+    ];
 
     public function account()
     {
         return $this->belongsTo(Account::class, 'account_id');
-    }
-
-    public function community()
-    {
-        return $this->belongsTo(Community::class, 'community_id');
     }
 
     public function likes()
@@ -59,5 +66,30 @@ class Post extends Model
     public function isBookmarkedBy($accountId): bool
     {
         return $this->bookmarks()->where('account_id', $accountId)->exists();
+    }
+
+    /**
+     * Cek apakah $viewerId boleh melihat post ini.
+     * - Post public: semua orang boleh lihat
+     * - Post close_friend: hanya owner dan yang ada di close friend list owner
+     */
+    public function isVisibleTo(?int $viewerId): bool
+    {
+        if ($this->visibility === 'public') {
+            return true;
+        }
+
+        // close_friend: cek apakah viewer ada di daftar close friend si pembuat post
+        if ($viewerId === null) {
+            return false;
+        }
+
+        if ($viewerId === $this->account_id) {
+            return true;
+        }
+
+        return CloseFriend::where('account_id', $this->account_id)
+            ->where('friend_id', $viewerId)
+            ->exists();
     }
 }
