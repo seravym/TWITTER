@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Show Post</title>
+
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -11,6 +12,7 @@
             margin: 0;
             padding: 40px 20px;
         }
+
         .container {
             max-width: 600px;
             margin: 0 auto;
@@ -18,18 +20,25 @@
             border: 1px solid #eff3f4;
             border-radius: 16px;
             padding: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
         }
+
         h1 {
             margin-top: 0;
             font-size: 1.6em;
             font-weight: 900;
         }
+
         p {
             font-size: 1.15em;
             line-height: 1.5;
-            color: #0f1419;
         }
+
+        .user {
+            font-size: 0.9em;
+            color: gray;
+            margin-bottom: 10px;
+        }
+
         a {
             color: #1da1f2;
             text-decoration: none;
@@ -37,22 +46,39 @@
             display: inline-block;
             margin-top: 15px;
         }
-        a:hover {
-            text-decoration: underline;
-        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        
-        <h1>{{ $post->title }}</h1>
+<div class="container">
 
-        <p>{{ $post->content }}</p>
-
-        <a href="{{ route('posts.index') }}">Kembali</a>
-
+    {{-- USER --}}
+    <div class="user">
+        dibuat oleh {{ $post->account->name }}
     </div>
+
+    {{-- CONTENT --}}
+    <h1>{{ $post->content }}</h1>
+
+    <p>{{ $post->content }}</p>
+
+    {{-- LIKE --}}
+    <form action="{{ route('posts.like', $post) }}" method="POST" style="display:inline;">
+        @csrf
+
+        <button type="submit"
+            style="color: {{ $post->isLikedBy(auth()->id()) ? 'red' : 'black' }}">
+            ❤️ {{ $post->likes->count() }}
+        </button>
+    </form>
+
+    {{-- nanti repost kita taruh di sini --}}
+
+    <br><br>
+
+    <a href="{{ route('posts.index') }}">Kembali</a>
+
+</div>
 
 </body>
 </html>
