@@ -1,10 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="{{ (Auth::check() && Auth::user()->setting && Auth::user()->setting->theme === 'dark') ? 'dark-mode' : '' }}">
 <head>
     <meta charset="UTF-8">
     <title>Home - Twitter</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f7f9fa; margin: 0; padding: 0; color: #0f1419; }
+        :root {
+            --bg: #f7f9fa; --card-bg: #ffffff; --text: #0f1419; --text-muted: #536471;
+            --border: #eff3f4; --hover-bg: #e8f5fe; --compose-bg: #fcfdfe;
+            --accent: #1da1f2; --shadow: 0 4px 15px rgba(0,0,0,0.03);
+            --feed-sep: #eff3f4; --comment-bg: #fafbfc;
+        }
+        html.dark-mode {
+            --bg: #15202b; --card-bg: #1e2732; --text: #f7f9fa; --text-muted: #8899a6;
+            --border: #2f3b47; --hover-bg: #253341; --compose-bg: #253341;
+            --accent: #1d9bf0; --shadow: 0 4px 15px rgba(0,0,0,0.3);
+            --feed-sep: #2f3b47; --comment-bg: #192734;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--bg); margin: 0; padding: 0; color: var(--text); transition: background 0.3s, color 0.3s; }
         .app-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; padding-top: 20px; }
         
         .sidebar { width: 30%; position: sticky; top: 20px; height: max-content; padding-right: 25px; box-sizing: border-box; }
@@ -13,8 +25,8 @@
         .bell-icon:hover { background: #e8f5fe; color: #1da1f2; }
         .bell-dot { position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; background: #f4212e; border-radius: 50%; }
         
-        .sidebar-card { background: white; border: 1px solid #eff3f4; border-radius: 20px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
-        .sidebar-profile { text-align: center; border-bottom: 1px solid #eff3f4; padding-bottom: 25px; margin-bottom: 20px; position: relative; }
+        .sidebar-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 25px; box-shadow: var(--shadow); }
+        .sidebar-profile { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 25px; margin-bottom: 20px; position: relative; }
         
         .profile-avatar-wrapper { position: relative; width: 100px; height: 100px; margin: 0 auto 15px auto; }
         .sidebar-avatar { width: 100%; height: 100%; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 35px; text-transform: uppercase; transition: 0.2s; position: relative; z-index: 2; border: 3px solid white; box-sizing: border-box; }
@@ -25,39 +37,40 @@
         .status-bubble-feed { position: absolute; top: -4px; right: -6px; background: white; border: 1px solid #eff3f4; padding: 2px 6px; border-radius: 12px; font-size: 10px; color: #0f1419; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-weight: 700; z-index: 10; cursor: default; }
         .status-bubble-sidebar:active { transform: scale(0.9); }
 
-        .sidebar-name { font-weight: 800; font-size: 1.3em; color: #0f1419; margin-bottom: 5px; }
-        .sidebar-username { color: #536471; font-size: 1em; margin-bottom: 15px; }
-        .sidebar-stats { display: flex; justify-content: center; gap: 20px; font-size: 0.9em; color: #536471; }
+        .sidebar-name { font-weight: 800; font-size: 1.3em; color: var(--text); margin-bottom: 5px; }
+        .sidebar-username { color: var(--text-muted); font-size: 1em; margin-bottom: 15px; }
+        .sidebar-stats { display: flex; justify-content: center; gap: 20px; font-size: 0.9em; color: var(--text-muted); }
         .stat-link { cursor: pointer; transition: 0.2s; padding: 5px 10px; border-radius: 10px; }
-        .stat-link:hover { background: #f7f9fa; color: #0f1419; }
-        .sidebar-stats strong { color: #0f1419; font-size: 1.2em; display: block; }
+        .stat-link:hover { background: var(--hover-bg); color: var(--text); }
+        .sidebar-stats strong { color: var(--text); font-size: 1.2em; display: block; }
         
         .btn-view-profile { display: block; width: 100%; background: #0f1419; color: white; padding: 12px 0; border-radius: 30px; text-decoration: none; font-weight: bold; margin-top: 20px; transition: 0.2s; font-size: 1em; }
         .btn-view-profile:hover { background: #272c30; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
         .nav-menu { list-style: none; padding: 0; margin: 0; }
         .nav-menu li { margin-bottom: 5px; }
-        .nav-menu a { display: flex; align-items: center; gap: 15px; padding: 12px 15px; text-decoration: none; color: #0f1419; font-size: 1.1em; border-radius: 30px; transition: background 0.2s; font-weight: 600; }
-        .nav-menu a:hover { background-color: #e8f5fe; color: #1da1f2; }
+        .nav-menu a { display: flex; align-items: center; gap: 15px; padding: 12px 15px; text-decoration: none; color: var(--text); font-size: 1.1em; border-radius: 30px; transition: background 0.2s; font-weight: 600; }
+        .nav-menu a:hover { background-color: var(--hover-bg); color: var(--accent); }
         
         .btn-logout { width: 100%; background: white; color: #f4212e; border: 1px solid #f4212e; padding: 12px; border-radius: 30px; font-weight: bold; font-size: 1em; cursor: pointer; margin-top: 15px; transition: 0.2s; }
         .btn-logout:hover { background: #f4212e; color: white; border-color: #f4212e; }
 
-        .main-feed { width: 68%; background: white; border: 1px solid #eff3f4; border-radius: 20px; min-height: 100vh; padding-bottom: 50px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.01); }
-        .feed-header { position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 10; border-bottom: 1px solid #eff3f4; }
-        .page-title { font-size: 1.4em; font-weight: 900; padding: 20px 15px 10px 15px; margin: 0; color: #0f1419; text-align: center; } 
+        .main-feed { width: 68%; background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; min-height: 100vh; padding-bottom: 50px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.01); }
+        .feed-header { position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 10; border-bottom: 1px solid var(--border); }
+        html.dark-mode .feed-header { background: rgba(30,39,50,0.95); }
+        .page-title { font-size: 1.4em; font-weight: 900; padding: 20px 15px 10px 15px; margin: 0; color: var(--text); text-align: center; } 
         .feed-tabs { display: flex; padding: 0 15px; }
-        .tab-item { flex: 1; text-align: center; padding: 15px 0; text-decoration: none; color: #536471; font-weight: 700; transition: 0.2s; position: relative; font-size: 1.05em; }
-        .tab-item:hover { background-color: #f7f9fa; color: #0f1419; border-radius: 8px 8px 0 0; }
-        .tab-item.active { color: #0f1419; }
+        .tab-item { flex: 1; text-align: center; padding: 15px 0; text-decoration: none; color: var(--text-muted); font-weight: 700; transition: 0.2s; position: relative; font-size: 1.05em; }
+        .tab-item:hover { background-color: var(--hover-bg); color: var(--text); border-radius: 8px 8px 0 0; }
+        .tab-item.active { color: var(--text); }
         .tab-item.active::after { content: ''; position: absolute; bottom: 0; left: 25%; width: 50%; height: 4px; background-color: #1da1f2; border-radius: 4px 4px 0 0; }
 
-        .compose-area { padding: 25px; background-color: white; border-bottom: 8px solid #eff3f4; display: flex; gap: 20px; }
-        .compose-input-wrapper { flex: 1; border: 1px solid #cfd9de; border-radius: 16px; padding: 10px 15px; transition: 0.2s; background: #fcfdfe; position: relative;}
-        .compose-input-wrapper:focus-within { border-color: #1da1f2; box-shadow: 0 0 0 1px #1da1f2; background: white; }
-        .compose-input { width: 100%; box-sizing: border-box; border: none; font-size: 1.15em; outline: none; resize: none; background: transparent; color: #0f1419; font-family: inherit; }
-        .compose-input::placeholder { color: #8899a6; font-weight: 500; }
-        .compose-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px solid #eff3f4; padding-top: 10px; }
+        .compose-area { padding: 25px; background-color: var(--card-bg); border-bottom: 8px solid var(--feed-sep); display: flex; gap: 20px; }
+        .compose-input-wrapper { flex: 1; border: 1px solid var(--border); border-radius: 16px; padding: 10px 15px; transition: 0.2s; background: var(--compose-bg); position: relative;}
+        .compose-input-wrapper:focus-within { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); background: var(--card-bg); }
+        .compose-input { width: 100%; box-sizing: border-box; border: none; font-size: 1.15em; outline: none; resize: none; background: transparent; color: var(--text); font-family: inherit; }
+        .compose-input::placeholder { color: var(--text-muted); font-weight: 500; }
+        .compose-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px; }
         
         .btn-post { background: #1da1f2; color: white; border: none; padding: 8px 24px; font-weight: bold; border-radius: 30px; cursor: pointer; font-size: 1em; transition: 0.2s; }
         .btn-post:hover { background: #1a91da; }
@@ -69,30 +82,30 @@
         .emoji-item { cursor: pointer; font-size: 1.2em; text-align: center; padding: 5px; border-radius: 8px; transition: 0.2s; }
         .emoji-item:hover { background: #e8f5fe; }
 
-        .post-card { border-bottom: 8px solid #eff3f4; transition: 0.2s; position: relative; }
-        .post-inner { padding: 25px 25px 15px 25px; background: white; }
-        .post-card:hover .post-inner { background: #fdfdfe; }
-        .my-post { border-left: 4px solid #1da1f2; }
-        .my-post-badge { position: absolute; top: 25px; right: 25px; background: #e8f5fe; color: #1da1f2; font-size: 0.75em; font-weight: bold; padding: 4px 10px; border-radius: 12px; }
+        .post-card { border-bottom: 8px solid var(--feed-sep); transition: 0.2s; position: relative; }
+        .post-inner { padding: 25px 25px 15px 25px; background: var(--card-bg); }
+        .post-card:hover .post-inner { background: var(--compose-bg); }
+        .my-post { border-left: 4px solid var(--accent); }
+        .my-post-badge { position: absolute; top: 25px; right: 25px; background: var(--hover-bg); color: var(--accent); font-size: 0.75em; font-weight: bold; padding: 4px 10px; border-radius: 12px; }
 
         .post-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-        .post-name { font-weight: 800; color: #0f1419; text-decoration: none; font-size: 1.1em; display: inline-block; }
+        .post-name { font-weight: 800; color: var(--text); text-decoration: none; font-size: 1.1em; display: inline-block; }
         .post-name:hover { text-decoration: underline; }
-        .post-username { color: #536471; font-size: 0.9em; }
-        .post-time { color: #536471; font-size: 0.9em; margin-left: 5px; }
+        .post-username { color: var(--text-muted); font-size: 0.9em; }
+        .post-time { color: var(--text-muted); font-size: 0.9em; margin-left: 5px; }
         
         .btn-feed-follow { background: #1da1f2; color: white; border: none; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 0.85em; cursor: pointer; transition: 0.2s; }
         .btn-feed-follow:hover { background: #1a91da; }
 
-        .post-content { font-size: 1.15em; line-height: 1.6; margin-bottom: 18px; margin-top: 15px; color: #0f1419; }
+        .post-content { font-size: 1.15em; line-height: 1.6; margin-bottom: 18px; margin-top: 15px; color: var(--text); }
         
-        .post-actions { display: flex; gap: 15px; color: #536471; font-size: 0.95em; align-items: center; border-top: 1px solid #eff3f4; padding-top: 12px; margin-top: 15px; }
-        .action-pill { background: #f7f9fa; border: 1px solid #eff3f4; color: inherit; cursor: pointer; font-size: 0.95em; font-weight: 600; display: flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 20px; transition: 0.2s; }
-        .action-pill:hover { background: #e8f5fe; color: #1da1f2; border-color: #cfd9de; }
+        .post-actions { display: flex; gap: 15px; color: var(--text-muted); font-size: 0.95em; align-items: center; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 15px; }
+        .action-pill { background: var(--compose-bg); border: 1px solid var(--border); color: inherit; cursor: pointer; font-size: 0.95em; font-weight: 600; display: flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 20px; transition: 0.2s; }
+        .action-pill:hover { background: var(--hover-bg); color: var(--accent); border-color: var(--border); }
         .action-pill.like:hover { background: #fce8f3; color: #f91880; border-color: #f91880; }
         .action-pill.delete:hover { background: #fdeced; color: #f4212e; border-color: #f4212e; }
 
-        .comment-section-wrapper { display: none; background: #fafbfc; border-top: 1px solid #eff3f4; box-shadow: inset 0px 5px 10px rgba(0,0,0,0.01); }
+        .comment-section-wrapper { display: none; background: var(--comment-bg); border-top: 1px solid var(--border); box-shadow: inset 0px 5px 10px rgba(0,0,0,0.01); }
         .comment-list-area { padding: 15px 25px; }
         
         .sort-bar { display: flex; gap: 15px; border-bottom: 1px solid #eff3f4; padding-bottom: 10px; margin-bottom: 20px; font-size: 0.85em; color: #536471; }
@@ -196,7 +209,8 @@
     <div class="sidebar">
         <div class="brand">
             Twitter 
-            <span class="bell-icon" title="Notifications">🔔<div class="bell-dot"></div></span>
+            @php $unreadNotifCount = \App\Http\Controllers\NotificationController::unreadCount(); @endphp
+            <a href="/notifications" class="bell-icon" title="Notifications" style="text-decoration:none;">🔔@if($unreadNotifCount > 0)<div class="bell-dot"></div>@endif</a>
         </div>
         
         <div class="sidebar-card">
@@ -247,14 +261,12 @@
             <ul class="nav-menu">
                 <li><a href="/" onclick="if(window.location.pathname=='/') { window.scrollTo({top: 0, behavior: 'smooth'}); return false; }">🏠 Home</a></li>
                 <li><a href="/accounts">🔍 Explore Users</a></li>
+                <li><a href="/hashtags">🔥 Trending</a></li>
+                <li><a href="/bookmarks">🔖 Bookmarks</a></li>
                 <li><a href="/close-friends">🌟 Close Friends</a></li>
+                <li><a href="/notifications">🔔 Notifications @php $nc = \App\Http\Controllers\NotificationController::unreadCount(); @endphp @if($nc > 0)<span style="background:#f4212e;color:white;font-size:0.7em;padding:2px 8px;border-radius:20px;margin-left:5px;">{{ $nc }}</span>@endif</a></li>
                 <li><a href="/messages">✉️ Messages</a></li>
-                <li><a href="/communities">👥 Community</a></li> 
-                <li><a href="/menfess/create">📩 Send Menfess</a></li>
-
-                    @if(str_contains(strtolower(Auth::user()->username ?? ''), 'base'))
-                    <li><a href="/menfess">📬 Menfess Queue</a></li>
-                    @endif
+                <li><a href="/communities">👥 Community</a></li>
                 <li><a href="/settings">⚙️ Settings</a></li>
             </ul>
 
@@ -392,6 +404,7 @@
                         </div>
                         
                         <div class="post-content">{{ $post->content }}</div>
+
                         {{-- Tampilkan media jika ada --}}
                         @if($post->media_path)
                             <div style="margin: 10px 0 15px; border-radius: 16px; overflow: hidden;">
@@ -401,7 +414,7 @@
                                     </video>
                                 @else
                                     <img src="{{ asset('storage/' . $post->media_path) }}" alt="Post media"
-                                        style="width:100%; max-height: 450px; object-fit: cover; border-radius: 16px; display:block;">
+                                         style="width:100%; max-height: 450px; object-fit: cover; border-radius: 16px; display:block;">
                                 @endif
                             </div>
                         @endif
@@ -418,6 +431,13 @@
                                 @csrf<button type="submit" class="action-pill like">{{ $post->isLikedBy(Auth::id()) ? '❤️' : '🤍' }} {{ $post->likes->count() }}</button>
                             </form>
                             <button class="action-pill" onclick="toggleComments({{ $post->id }})">💬 {{ $post->comments->count() }} Comments</button>
+                            {{-- Bookmark toggle --}}
+                            <form action="{{ route('bookmarks.toggle', $post->id) }}" method="POST" style="margin:0;">
+                                @csrf
+                                <button type="submit" class="action-pill" style="{{ $post->isBookmarkedBy(Auth::id()) ? 'background:#fffbeb;color:#f59e0b;border-color:#fde68a;' : '' }}" title="{{ $post->isBookmarkedBy(Auth::id()) ? 'Hapus Bookmark' : 'Simpan ke Bookmark' }}">
+                                    {{ $post->isBookmarkedBy(Auth::id()) ? '🔖' : '🏷️' }}
+                                </button>
+                            </form>
                             @if($isMyPost)
                                 {{-- Pin / Unpin --}}
                                 <form action="{{ route('posts.pin', $post->id) }}" method="POST" style="margin:0;">
