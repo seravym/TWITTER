@@ -10,11 +10,9 @@ return new class extends Migration
     {
         Schema::create('polls', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('post_id')->constrained('posts')->onDelete('cascade');
-            $table->string('question');
-            $table->boolean('allow_multiple')->default(false);
-            $table->timestamp('ends_at')->nullable();
-            $table->boolean('is_active')->default(true);
+            $table->foreignId('post_id')->constrained()->cascadeOnDelete();
+            $table->string('question')->nullable();
+            $table->timestamp('expires_at')->nullable();
             $table->timestamps();
         });
     }
