@@ -19,6 +19,7 @@ class Post extends Model
         'media_type',
         'is_pinned',
         'visibility',
+        'quote_post_id',
     ];
 
     protected $casts = [
@@ -108,5 +109,15 @@ class Post extends Model
         return CloseFriend::where('account_id', $this->account_id)
             ->where('friend_id', $viewerId)
             ->exists();
+    }
+
+    public function quotedPost()
+    {
+        return $this->belongsTo(Post::class, 'quote_post_id');
+    }
+
+    public function quotes()
+    {
+        return $this->hasMany(Post::class, 'quote_post_id');
     }
 }

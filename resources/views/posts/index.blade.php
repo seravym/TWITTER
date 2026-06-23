@@ -16,6 +16,16 @@
             {{-- CONTENT --}}
             <p>{{ $post->content }}</p>
 
+            @if($post->quotedPost)
+
+            <div style="border:1px solid #aaa; padding:10px; margin-top:10px;">
+                <strong>{{ $post->quotedPost->account->name }}</strong>
+                <br>
+                {{ $post->quotedPost->content }}
+            </div>
+
+            @endif
+
             {{-- USER --}}
             <small>
                 dibuat oleh user #{{ $post->accounts->name }}
@@ -43,6 +53,11 @@
                     🔁 {{ $post->reposts->count() }}
                 </button>
             </form>
+            <a href="{{ route('posts.quote', $post) }}">
+                💬 Quote
+            </a>
+
+            
 
             {{-- EDIT --}}
             <a href="{{ route('posts.edit', $post) }}">Edit</a>

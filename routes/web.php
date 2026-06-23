@@ -67,6 +67,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/posts/{post}/like', [LikeController::class, 'toggle'])->name('posts.like');
     Route::post('/posts/{post}/pin', [PostController::class, 'pin'])->name('posts.pin');
     Route::post('/posts/{post}/repost', [RepostController::class, 'toggle'])->name('posts.repost');
+    Route::get('/posts/{post}/quote', [PostController::class, 'quote'])->name('posts.quote');
     
     // --- Route Polls ---
     Route::post('/polls/{poll}/vote', [PollController::class, 'vote'])->name('polls.vote')->middleware('auth');
