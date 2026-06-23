@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Masuk ke Twitter</title>
+    <title>Lupa Password</title>
     <style>
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -41,12 +41,11 @@
             box-sizing: border-box;
         }
         input:focus { border: 2px solid #1d9bf0; }
-
-        .checkbox-group { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; margin-bottom: 25px; cursor: pointer; color: #536471; }
         
         button[type="submit"] {
             width: 100%; background: #0f1419; color: #fff; border: none; padding: 12px; 
             border-radius: 9999px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.2s;
+            margin-top: 10px;
         }
         button[type="submit"]:hover { background: #272c30; }
 
@@ -60,13 +59,7 @@
 <div class="login-box">
     <div class="twitter-logo">Twitter</div>
 
-    <h2>Form Login</h2>
-
-    @if (session('success'))
-        <div style="background: #e6fffa; color: #2c7a7b; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-            {{ session('success') }}
-        </div>
-    @endif
+    <h2>Reset Password</h2>
 
     @if ($errors->any())
         <ul class="error-list">
@@ -76,28 +69,22 @@
         </ul>
     @endif
 
-    <form action="/login" method="POST">
+    <form action="/forgot-password" method="POST">
         @csrf
         <div class="form-group">
-            <label>Email:</label>
-            <input type="email" name="email" value="{{ old('email') }}" required>
+            <label>Masukkan Email Akun Anda:</label>
+            <input type="email" name="email" required>
         </div>
         
         <div class="form-group">
-            <label>Password:</label>
+            <label>Password Baru:</label>
             <input type="password" name="password" required>
         </div>
         
-        <label class="checkbox-group">
-            <input type="checkbox" name="remember" id="remember">
-            <span>Ingat Saya</span>
-        </label>
-        
-        <button type="submit">Login</button>
+        <button type="submit">Ganti Password</button>
     </form>
 
-    <p><a href="/forgot-password">Lupa Password?</a></p>
-    <p>Belum punya akun? <a href="/register">Daftar di sini</a></p>
+    <p><a href="/login">Kembali ke halaman Login</a></p>
 </div>
 
 </body>
