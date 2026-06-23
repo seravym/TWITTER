@@ -49,8 +49,6 @@ class PostController extends Controller
         ];
 
         $postsQuery = Post::with($relations)
-            ->whereNull('community_id')
-            ->whereNull('archived_at')
             ->whereNotIn('account_id', $blockedIds);
 
         if ($feedType === 'following' && Auth::check()) {
