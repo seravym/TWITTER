@@ -250,6 +250,11 @@
                 <li><a href="/close-friends">🌟 Close Friends</a></li>
                 <li><a href="/messages">✉️ Messages</a></li>
                 <li><a href="/communities">👥 Community</a></li> 
+                <li><a href="/menfess/create">📩 Send Menfess</a></li>
+
+                    @if(str_contains(strtolower(Auth::user()->username ?? ''), 'base'))
+                    <li><a href="/menfess">📬 Menfess Queue</a></li>
+                    @endif
                 <li><a href="/settings">⚙️ Settings</a></li>
             </ul>
 
