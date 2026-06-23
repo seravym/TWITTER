@@ -20,7 +20,7 @@ class MenfessController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'base_id' => 'required',
+            'base_id' => 'required|exists:accounts,id',
             'message' => 'required|string|max:280',
         ]);
 
@@ -55,6 +55,7 @@ class MenfessController extends Controller
         Post::create([
             'account_id' => Auth::id(),
             'content' => "guys!\n\n" . $menfess->message,
+            'visibility' => 'public',
         ]);
 
         $menfess->update([

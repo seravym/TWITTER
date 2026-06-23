@@ -103,6 +103,7 @@
         .notif-icon.follow_accepted { background: rgba(29,155,240,0.15); }
         .notif-icon.like { background: rgba(249,24,128,0.15); }
         .notif-icon.comment { background: rgba(0,186,124,0.15); }
+        .notif-icon.mention { background: rgba(29,155,240,0.15); }
         .notif-icon.general { background: rgba(139,92,246,0.15); }
 
         .notif-content { flex: 1; }
@@ -147,6 +148,7 @@ function notifIcon($type) {
         'follow_accepted' => '✅',
         'like' => '❤️',
         'comment' => '💬',
+        'mention' => '🏷️',
         default => '🔔',
     };
 }
@@ -215,6 +217,9 @@ function notifIcon($type) {
                         {{ $notif->message }}
                     </div>
                     <div class="notif-time">{{ $notif->created_at->diffForHumans() }}</div>
+                    @if(in_array($notif->type, ['mention', 'comment', 'like']) && $notif->reference_id)
+                        <a href="/posts/{{ $notif->reference_id }}" style="color:var(--accent);font-weight:700;text-decoration:none;font-size:0.85em;margin-top:6px;display:inline-block;">Open related post</a>
+                    @endif
                 </div>
                 <form action="{{ route('notifications.destroy', $notif->id) }}" method="POST" style="margin:0;">
                     @csrf @method('DELETE')

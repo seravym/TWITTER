@@ -19,10 +19,12 @@ class Post extends Model
         'media_type',
         'is_pinned',
         'visibility',
+        'archived_at',
     ];
 
     protected $casts = [
         'is_pinned' => 'boolean',
+        'archived_at' => 'datetime',
     ];
 
     public function account()
@@ -90,6 +92,16 @@ class Post extends Model
      * - Post public: semua orang boleh lihat
      * - Post close_friend: hanya owner dan yang ada di close friend list owner
      */
+    public function isArchived(): bool
+    {
+        return $this->archived_at !== null;
+    }
+
+    public function reports()
+    {
+        return $this->morphMany(Report::class, 'reportable');
+    }
+
     public function isVisibleTo(?int $viewerId): bool
     {
         if ($this->visibility === 'public') {

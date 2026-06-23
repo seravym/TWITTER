@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class Comment extends Model
 {
     protected $fillable = [
-        'account_id', 
-        'post_id', 
-        'parent_id', 
-        'content', 
-        'is_toxic'
+        'account_id',
+        'post_id',
+        'parent_id',
+        'content',
+        'is_toxic',
     ];
 
     public function account()
@@ -32,5 +32,10 @@ class Comment extends Model
     public function replies()
     {
         return $this->hasMany(Comment::class, 'parent_id');
+    }
+
+    public function reports()
+    {
+        return $this->morphMany(Report::class, 'reportable');
     }
 }
