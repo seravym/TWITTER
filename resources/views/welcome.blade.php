@@ -726,27 +726,72 @@
             Followers
         </div>
         <ul class="modal-user-list">
-            @php $myFollowersList = Auth::user()->followers()->where('status', 'accepted')->with('follower')->get(); @endphp
-            @if($myFollowersList->isEmpty()) <li style="justify-content: center; color: gray;">No followers yet.</li>
+            @php 
+                $myFollowersList = Auth::user()->followers()->where('status', 'accepted')->with('follower')->get(); 
+                $closeFriendIds = \App\Models\CloseFriend::where('account_id', Auth::id())->pluck('friend_id')->toArray();
+            @endphp
+            
+            @if($myFollowersList->isEmpty()) 
+                <li style="justify-content: center; color: var(--text-muted); font-weight: 600; padding: 40px 0;">No followers yet.</li>
             @else
                 @foreach($myFollowersList as $f)
+                    @php 
+                        $isFollowingBack = in_array($f->follower->id, $myFollowingList);
+                        $isCF = in_array($f->follower->id, $closeFriendIds);
+                    @endphp
                     <li>
-                        <div style="display: flex; gap: 12px; align-items: center; width: 100%;">
-                            <a href="/accounts/{{ $f->follower->id }}" style="text-decoration: none;">
-                                <div class="sidebar-avatar" style="width: 44px; height: 44px; font-size: 16px; margin: 0; background: {{ getAvatarGradient($f->follower->id) }}; border:none;">
+                        <div style="display: flex; gap: 14px; align-items: center; width: 100%;">
+                            <a href="/accounts/{{ $f->follower->id }}" style="text-decoration: none; flex-shrink: 0;">
+                                <div class="sidebar-avatar" style="width: 48px; height: 48px; font-size: 18px; margin: 0; background: {{ getAvatarGradient($f->follower->id) }}; border:none;">
                                     {{ substr($f->follower->name, 0, 1) }}
                                 </div>
                             </a>
-                            <div style="flex: 1;">
-                                <a href="/accounts/{{ $f->follower->id }}" style="display: block; font-weight:bold; color:#0f1419; text-decoration:none;">{{ $f->follower->name }}</a>
-                                <div style="color: #536471; font-size: 0.9em;">@ {{ $f->follower->username }}</div>
+                            
+                            <div style="flex: 1; min-width: 0;">
+                                <a href="/accounts/{{ $f->follower->id }}" style="display: flex; align-items: center; gap: 5px; font-weight: 800; color: var(--text); text-decoration: none; font-size: 1.05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    {{ $f->follower->name }}
+                                    @if($isCF)
+                                        <span title="Close Friend" style="font-size: 0.85em;">🌟</span>
+                                    @endif
+                                </a>
+                                <div style="color: var(--text-muted); font-size: 0.95em;">@ {{ $f->follower->username }}</div>
                             </div>
                             
-                            @if(!in_array($f->follower->id, $myFollowingList))
-                                <button class="btn-follow-back">Follow Back</button>
-                            @else
-                                <button class="btn-message">Message</button>
-                            @endif
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                @if(!$isFollowingBack)
+                                    <form action="/follows" method="POST" style="margin: 0;">
+                                        @csrf <input type="hidden" name="following_id" value="{{ $f->follower->id }}">
+                                        <button type="submit" class="btn-follow-back" style="padding: 7px 18px; background: var(--text); color: var(--bg);">Follow Back</button>
+                                    </form>
+                                @else
+                                    <a href="/messages/{{ $f->follower->id }}" class="btn-message" style="text-decoration: none; padding: 7px 18px;">Message</a>
+                                @endif
+
+                                <div style="position: relative;">
+                                    <button onclick="toggleActionMenu(event, 'drop-flw-{{$f->follower->id}}')" style="background: none; border: none; font-size: 1.3em; cursor: pointer; color: var(--text-muted); padding: 5px; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='none'">⋮</button>
+                                    
+                                    <div id="drop-flw-{{$f->follower->id}}" class="action-menu-dropdown action-menu-popup" style="right: 0; top: 40px; min-width: 240px;">
+                                        @if($isFollowingBack)
+                                            @if($isCF)
+                                                <form action="{{ route('close-friends.destroy', $f->follower->id) }}" method="POST" style="margin:0;">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="text-danger">✕ Hapus dari Close Friends</button>
+                                                </form>
+                                            @else
+                                                <form action="{{ route('close-friends.store', $f->follower->id) }}" method="POST" style="margin:0;">
+                                                    @csrf
+                                                    <button type="submit" style="color: #134e5e; font-weight: 700;">🌟 Tambah ke Close Friends</button>
+                                                </form>
+                                            @endif
+                                            <div style="height: 1px; background: var(--border); margin: 5px 0;"></div>
+                                        @else
+                                            <div style="padding: 12px 20px; font-size: 0.85em; color: var(--text-muted);">Follow akun ini untuk menambahkannya ke Close Friends.</div>
+                                            <div style="height: 1px; background: var(--border); margin: 5px 0;"></div>
+                                        @endif
+                                        <button class="text-danger">🚫 Remove this follower</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </li>
                 @endforeach
@@ -762,22 +807,61 @@
             Following
         </div>
         <ul class="modal-user-list">
-            @php $myFollowingData = Auth::user()->following()->where('status', 'accepted')->with('following')->get(); @endphp
-            @if($myFollowingData->isEmpty()) <li style="justify-content: center; color: gray;">Not following anyone yet.</li>
+            @php 
+                $myFollowingData = Auth::user()->following()->where('status', 'accepted')->with('following')->get(); 
+            @endphp
+            
+            @if($myFollowingData->isEmpty()) 
+                <li style="justify-content: center; color: var(--text-muted); font-weight: 600; padding: 40px 0;">Not following anyone yet.</li>
             @else
                 @foreach($myFollowingData as $g)
+                    @php 
+                        $isCF = in_array($g->following->id, $closeFriendIds);
+                    @endphp
                     <li>
-                        <div style="display: flex; gap: 12px; align-items: center; width: 100%;">
-                            <a href="/accounts/{{ $g->following->id }}" style="text-decoration: none;">
-                                <div class="sidebar-avatar" style="width: 44px; height: 44px; font-size: 16px; margin: 0; background: {{ getAvatarGradient($g->following->id) }}; border:none;">
+                        <div style="display: flex; gap: 14px; align-items: center; width: 100%;">
+                            <a href="/accounts/{{ $g->following->id }}" style="text-decoration: none; flex-shrink: 0;">
+                                <div class="sidebar-avatar" style="width: 48px; height: 48px; font-size: 18px; margin: 0; background: {{ getAvatarGradient($g->following->id) }}; border:none;">
                                     {{ substr($g->following->name, 0, 1) }}
                                 </div>
                             </a>
-                            <div style="flex: 1;">
-                                <a href="/accounts/{{ $g->following->id }}" style="display: block; font-weight:bold; color:#0f1419; text-decoration:none;">{{ $g->following->name }}</a>
-                                <div style="color: #536471; font-size: 0.9em;">@ {{ $g->following->username }}</div>
+                            
+                            <div style="flex: 1; min-width: 0;">
+                                <a href="/accounts/{{ $g->following->id }}" style="display: flex; align-items: center; gap: 5px; font-weight: 800; color: var(--text); text-decoration: none; font-size: 1.05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    {{ $g->following->name }}
+                                    @if($isCF)
+                                        <span title="Close Friend" style="font-size: 0.85em;">🌟</span>
+                                    @endif
+                                </a>
+                                <div style="color: var(--text-muted); font-size: 0.95em;">@ {{ $g->following->username }}</div>
                             </div>
-                            <button class="btn-message">Message</button>
+                            
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <a href="/messages/{{ $g->following->id }}" class="btn-message" style="text-decoration: none; padding: 7px 18px;">Message</a>
+                                
+                                <div style="position: relative;">
+                                    <button onclick="toggleActionMenu(event, 'drop-fwing-{{$g->following->id}}')" style="background: none; border: none; font-size: 1.3em; cursor: pointer; color: var(--text-muted); padding: 5px; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='none'">⋮</button>
+                                    
+                                    <div id="drop-fwing-{{$g->following->id}}" class="action-menu-dropdown action-menu-popup" style="right: 0; top: 40px; min-width: 240px;">
+                                        @if($isCF)
+                                            <form action="{{ route('close-friends.destroy', $g->following->id) }}" method="POST" style="margin:0;">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="text-danger">✕ Hapus dari Close Friends</button>
+                                            </form>
+                                        @else
+                                            <form action="{{ route('close-friends.store', $g->following->id) }}" method="POST" style="margin:0;">
+                                                @csrf
+                                                <button type="submit" style="color: #134e5e; font-weight: 700;">🌟 Tambah ke Close Friends</button>
+                                            </form>
+                                        @endif
+                                        <div style="height: 1px; background: var(--border); margin: 5px 0;"></div>
+                                        <form action="/follows/{{ $g->following->id }}" method="POST" style="margin:0;">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="text-danger">🚫 Unfollow <span style="font-weight: 800;">@ {{ $g->following->username }}</span></button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </li>
                 @endforeach
