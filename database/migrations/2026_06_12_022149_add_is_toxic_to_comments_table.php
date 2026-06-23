@@ -8,15 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('comments', function (Blueprint $table) {
-            $table->boolean('is_toxic')->default(false)->after('content');
-        });
+        if (!Schema::hasColumn('comments', 'is_toxic')) {
+            Schema::table('comments', function (Blueprint $table) {
+                $table->boolean('is_toxic')->default(false)->after('content');
+            }); 
+        }
     }
 
     public function down(): void
     {
-        Schema::table('comments', function (Blueprint $table) {
-            $table->dropColumn('is_toxic');
-        });
+        if (Schema::hasColumn('comments', 'is_toxic')) {
+            Schema::table('comments', function (Blueprint $table) {
+                $table->dropColumn('is_toxic');
+            });
+        }
     }
 };

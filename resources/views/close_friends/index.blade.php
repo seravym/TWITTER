@@ -16,7 +16,6 @@
             transition: background 0.3s, color 0.3s;
         }
 
-        /* ── HEADER ── */
         .page-header {
             background: linear-gradient(135deg, #134e5e, #71b280);
             padding: 30px 20px 80px; text-align: center; color: white; position: relative;
@@ -34,10 +33,15 @@
             font-size: 0.9em; font-weight: 700;
         }
 
-        /* ── CONTAINER ── */
-        .container { max-width: 640px; margin: -30px auto 0; padding: 0 16px 80px; }
+        .container { 
+            max-width: 640px; 
+            margin: -30px auto 0; 
+            padding: 0 16px 80px; 
+            /* FIX 1: Memastikan container berada di atas header */
+            position: relative; 
+            z-index: 10; 
+        }
 
-        /* ── ALERT ── */
         .alert {
             padding: 14px 18px; border-radius: 14px; font-weight: 700;
             margin-bottom: 16px; font-size: 0.95em;
@@ -45,23 +49,20 @@
         .alert-success { background: #eafff0; color: #166534; }
         .alert-error   { background: #fef2f2; color: #991b1b; }
 
-        /* ── INFO CARD ── */
         .info-card {
             background: var(--card-bg); border-radius: 20px; border: 1px solid var(--border);
-            padding: 18px 22px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            padding: 18px 22px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             display: flex; gap: 14px; align-items: flex-start;
         }
         .info-icon { font-size: 1.8em; flex-shrink: 0; }
         .info-text strong { font-size: 1em; font-weight: 800; color: var(--text); display: block; margin-bottom: 4px; }
         .info-text p { font-size: 0.88em; color: var(--text-muted); line-height: 1.5; }
 
-        /* ── SECTION LABEL ── */
         .section-label {
             font-size: 0.78em; font-weight: 800; text-transform: uppercase;
             letter-spacing: 1px; color: #536471; margin-bottom: 12px; padding-left: 4px;
         }
 
-        /* ── FRIEND CARD ── */
         .friends-list { display: flex; flex-direction: column; gap: 10px; }
         .friend-card {
             background: var(--card-bg); border-radius: 18px; border: 1px solid var(--border);
@@ -75,7 +76,6 @@
             background: linear-gradient(135deg, rgba(19,78,94,0.03), rgba(113,178,128,0.05));
         }
 
-        /* Avatar */
         .friend-avatar {
             width: 50px; height: 50px; border-radius: 50%; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
@@ -98,7 +98,6 @@
             padding: 3px 10px; border-radius: 20px; margin-top: 4px;
         }
 
-        /* Buttons */
         .btn-add {
             background: linear-gradient(135deg, #134e5e, #71b280);
             color: white; border: none; padding: 9px 18px; border-radius: 20px;
@@ -115,12 +114,11 @@
         }
         .btn-remove:hover { background: #ef4444; color: white; }
 
-        /* Empty state */
         .empty-state {
             text-align: center; padding: 60px 20px; color: #536471;
         }
         .empty-state .emoji { font-size: 3.5em; margin-bottom: 16px; }
-        .empty-state h3 { font-size: 1.2em; font-weight: 800; color: #0f1419; margin-bottom: 8px; }
+        .empty-state h3 { font-size: 1.2em; font-weight: 800; color: var(--text); margin-bottom: 8px; }
         .empty-state p { font-size: 0.9em; line-height: 1.6; }
         .empty-state a {
             display: inline-block; margin-top: 18px;
@@ -196,7 +194,8 @@ function cfAvatarGradient($id) {
                     </a>
                     <div class="friend-info">
                         <div class="friend-name">{{ $account->name }}</div>
-                        <div class="friend-username">@{{ $account->username }}</div>
+                        <!-- FIX 2: Perbaikan pemanggilan variabel blade agar tidak ter-escape (menghapus tanda @) -->
+                        <div class="friend-username">{{ '@' . $account->username }}</div>
                         @if($isCF)
                             <div class="cf-badge">🌟 Close Friend</div>
                         @endif
