@@ -13,6 +13,7 @@ use App\Http\Controllers\LikeController;
 use App\Http\Controllers\StoryController;
 use App\Http\Controllers\HashtagController;
 use App\Http\Controllers\BookmarkController;
+use App\Http\Controllers\PollController;
 use App\Http\Controllers\CloseFriendController;
 use App\Http\Controllers\MenfessController;
 
@@ -50,6 +51,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('posts', PostController::class);
     Route::post('/posts/{post}/like', [LikeController::class, 'toggle'])->name('posts.like');
     Route::post('/posts/{post}/pin', [PostController::class, 'pin'])->name('posts.pin');
+    Route::post('/posts/{post}/poll/vote', [PollController::class, 'vote'])->name('polls.vote');
 
     // --- Fitur Komentar ---
     Route::get('/comments', [CommentController::class, 'index']);
