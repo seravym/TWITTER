@@ -489,6 +489,18 @@
                         
                         <div class="post-content">{!! parseMentions($post->content) !!}</div>
 
+                        @if($post->quotedPost)
+                            <a href="{{ route('posts.show', $post->quotedPost) }}" style="display:block;text-decoration:none;color:inherit;margin: 8px 0 15px;">
+                                <div style="border:1px solid var(--border);border-radius:16px;padding:14px;background:var(--compose-bg);">
+                                    <div style="font-weight:800;color:var(--text);margin-bottom:4px;">
+                                        {{ $post->quotedPost->account->name ?? 'User' }}
+                                        <span style="color:var(--text-muted);font-weight:600;">@ {{ $post->quotedPost->account->username ?? 'user' }}</span>
+                                    </div>
+                                    <div style="color:var(--text);line-height:1.5;">{!! parseMentions($post->quotedPost->content) !!}</div>
+                                </div>
+                            </a>
+                        @endif
+
                         {{-- Tampilkan media jika ada --}}
                         @if($post->media_path)
                             <div style="margin: 10px 0 15px; border-radius: 16px; overflow: hidden;">
@@ -562,6 +574,7 @@
                                 @csrf
                                 <button type="submit" class="action-pill" style="{{ $post->isRepostedBy(Auth::id()) ? 'background:#e6fffb;color:#0f766e;border-color:#99f6e4;' : '' }}">🔁 {{ $post->reposts->count() }}</button>
                             </form>
+                            <a href="{{ route('posts.quote', $post) }}" class="action-pill" style="text-decoration:none;" title="Quote post">💬 Quote</a>
                             {{-- Bookmark toggle --}}
                             <form action="{{ route('bookmarks.toggle', $post->id) }}" method="POST" style="margin:0;">
                                 @csrf

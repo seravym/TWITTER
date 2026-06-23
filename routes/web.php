@@ -8,6 +8,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\FollowController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\CommunityPostController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\StoryController;
@@ -67,7 +68,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/posts/{post}/like', [LikeController::class, 'toggle'])->name('posts.like');
     Route::post('/posts/{post}/pin', [PostController::class, 'pin'])->name('posts.pin');
     Route::post('/posts/{post}/repost', [RepostController::class, 'toggle'])->name('posts.repost');
-    
+    Route::get('/posts/{post}/quote', [PostController::class, 'quote'])->name('posts.quote');
+
     // --- Route Polls ---
     Route::post('/polls/{poll}/vote', [PollController::class, 'vote'])->name('polls.vote')->middleware('auth');
 
@@ -97,7 +99,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/communities', [CommunityController::class, 'index']);
     Route::get('/communities/create', [CommunityController::class, 'create']);
     Route::post('/communities', [CommunityController::class, 'store']);
-    Route::get('/communities/{community}', [CommunityController::class, 'show']);
+    Route::post('/communities/{community}/posts', [CommunityPostController::class, 'store'])->name('communities.posts.store');
+    Route::get('/communities/{community}', [CommunityController::class, 'show'])->name('communities.show');
     Route::post('/communities/{community}/join', [CommunityController::class, 'join']);
     Route::post('/communities/{community}/leave', [CommunityController::class, 'leave']);
 

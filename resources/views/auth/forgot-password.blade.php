@@ -76,6 +76,9 @@
             <input type="email" name="email" required>
         </div>
         
+        <button type="submit">Kirim Link Reset Password</button>
+    </form>
+        
         <div class="form-group">
             <label>Password Baru:</label>
             <input type="password" name="password" required>
