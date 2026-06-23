@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\Like;
+use App\Models\Poll;
+use App\Models\PollOption;
 use App\Models\Setting;
 use App\Models\Hashtag;
 use App\Models\CloseFriend;
@@ -107,6 +109,7 @@ class PostController extends Controller
             'poll_options.*'   => 'nullable|string|max:100',
             'poll_duration'    => 'nullable|integer|in:1,3,7',
         ]);
+
 
         $mediaPath = null;
         $mediaType = null;
