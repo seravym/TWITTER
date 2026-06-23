@@ -61,8 +61,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/follows', [FollowController::class, 'index']);
     Route::post('/follows', [FollowController::class, 'store']);
     Route::delete('/follows/{id}', [FollowController::class, 'destroy']);
-    Route::post('/follows/accept/{followerId}', [FollowController::class, 'accept']);
-    Route::post('/follows/reject/{followerId}', [FollowController::class, 'reject']);
+    Route::post('/follows/accept/{followerId}', [FollowController::class, 'accept'])->name('follows.accept');
+    Route::post('/follows/reject/{followerId}', [FollowController::class, 'reject'])->name('follows.reject');
 
     // --- Fitur Pesan Langsung (DM) ---
     Route::prefix('messages')->group(function () {
@@ -107,4 +107,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/menfess', [MenfessController::class, 'index'])->name('menfess.index');
     Route::post('/menfess/{id}/approve', [MenfessController::class, 'approve'])->name('menfess.approve');
+
+    // --- Fitur Notifikasi ---
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
 });
