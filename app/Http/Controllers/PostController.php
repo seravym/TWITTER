@@ -93,13 +93,43 @@ class PostController extends Controller
             $mediaPath = $file->store('posts', 'public');
         }
 
+        if ($request->has('poll_options')) {
+            $poll = $post->poll()->create(['expires_at' => now()->addDays(
+            $request->poll_duration ?? 7
+        ),
+    ]);
+
+        $request->validate([
+        'body' => 'nullable|string|max:280',
+
+        'poll_options' => 'nullable|array|min:2|max:4',
+
+        'poll_options.*' => 'nullable|string|max:100',
+    ]);
+
+            foreach ($request->poll_options as $option) {
+
+                if (!empty(trim($option))) {
+
+                    $poll->options()->create([
+                        'option_text' => $option,
+                    ]);
+                }
+            }
+        }
+
+
         $post = Post::create([
             'account_id' => Auth::id(),
             'content'    => $request->content,
             'media_path' => $mediaPath,
             'media_type' => $mediaType,
             'visibility' => $request->input('visibility', 'public'),
+            'account_id' => auth()->id(),
+            'body' => $request->body,
         ]);
+
+
 
         $this->syncHashtags($post, $request->content);
 
@@ -247,4 +277,6 @@ class PostController extends Controller
 
         $post->hashtags()->sync($hashtagIds);
     }
+
+    
 }

@@ -425,7 +425,72 @@
                                 🌟 Close Friends Only
                             </div>
                         @endif
+
                         
+                        @if($post->poll)
+                            @php
+                                $userVote = $post->poll->votes->firstWhere('account_id', Auth::id());
+                                $totalVotes = $post->poll->votes->count();
+                            @endphp
+                            <div style="margin: 15px 0; padding: 14px; background: #f7f9fa; border: 1px solid #eff3f4; border-radius: 18px;">
+                                <div style="font-weight: 700; margin-bottom: 12px;">{{ $post->poll->question }}</div>
+                                <form action="{{ route('polls.vote', $post) }}" method="POST">
+                                    @csrf
+                                    @foreach($post->poll->options as $option)
+                                        @php
+                                            $optionVotes = $option->votes->count();
+                                            $percent = $totalVotes > 0 ? round(($optionVotes / $totalVotes) * 100) : 0;
+                                        @endphp
+                                        <div style="margin-bottom: 10px;">
+                                            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                                                <input type="radio" name="poll_option_id" value="{{ $option->id }}" {{ ($userVote && $userVote->poll_option_id == $option->id) ? 'checked' : '' }} {{ $post->poll->isClosed() ? 'disabled' : '' }}>
+                                                <span style="font-size:0.96em;">{{ $option->text }}</span>
+                                            </label>
+                                            <div style="background:#e8eef5;height:10px;border-radius:999px;overflow:hidden;margin-top:8px;">
+                                                <div style="width:{{ $percent }}%;background:#1da1f2;height:100%;"></div>
+                                            </div>
+                                            <div style="font-size:0.82em;color:#536471; margin-top: 4px;">{{ $optionVotes }} vote(s) · {{ $percent }}%</div>
+                                        </div>
+                                    @endforeach
+                                    @if(!$post->poll->isClosed())
+                                        <button type="submit" class="btn-post" style="padding: 8px 14px; margin-top: 5px;">Vote</button>
+                                    @else
+                                        <div style="color:#536471;font-size:0.9em;margin-top:4px;">Polling closed</div>
+                                    @endif
+                                </form>
+                            </div>
+                        @endif
+                        
+                        <div class="poll-container">
+
+                        <input
+                            type="text"
+                            name="poll_options[]"
+                            placeholder="Option 1">
+
+                        <input
+                            type="text"
+                            name="poll_options[]"
+                            placeholder="Option 2">
+
+                        <input
+                            type="text"
+                            name="poll_options[]"
+                            placeholder="Option 3">
+
+                        <input
+                            type="text"
+                            name="poll_options[]"
+                            placeholder="Option 4">
+
+                        <select name="poll_duration">
+                            <option value="1">1 Day</option>
+                            <option value="3">3 Days</option>
+                            <option value="7">7 Days</option>
+                        </select>
+
+                    </div>
+
                         <div class="post-actions">
                             <form action="/posts/{{ $post->id }}/like" method="POST" style="margin:0;">
                                 @csrf<button type="submit" class="action-pill like">{{ $post->isLikedBy(Auth::id()) ? '❤️' : '🤍' }} {{ $post->likes->count() }}</button>

@@ -57,6 +57,10 @@ class Post extends Model
         return $this->hasMany(Comment::class);
     }
 
+    public function poll()
+    {
+        return $this->hasOne(Poll::class);
+    }
     /**
      * Relasi many-to-many ke Hashtag melalui pivot hashtag_post
      */
