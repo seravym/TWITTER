@@ -9,8 +9,12 @@ return new class extends Migration
     public function up()
     {
     Schema::table('accounts', function (Blueprint $table) {
-        $table->string('status_text')->nullable();
-        $table->timestamp('status_expires_at')->nullable();
+        if (!Schema::hasColumn('accounts', 'status_text')) {
+            $table->string('status_text')->nullable();
+        }
+        if (!Schema::hasColumn('accounts', 'status_expires_at')) {
+            $table->timestamp('status_expires_at')->nullable();
+        }
     });
     }
 

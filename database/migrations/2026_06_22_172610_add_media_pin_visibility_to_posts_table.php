@@ -13,14 +13,22 @@ return new class extends Migration
     {
         Schema::table('posts', function (Blueprint $table) {
             // Media upload (gambar atau video)
-            $table->string('media_path')->nullable()->after('content');
-            $table->string('media_type')->nullable()->after('media_path'); // 'image' | 'video' | null
+            if (!Schema::hasColumn('posts', 'media_path')) {
+                $table->string('media_path')->nullable()->after('content');
+            }
+            if (!Schema::hasColumn('posts', 'media_type')) {
+                $table->string('media_type')->nullable()->after('media_path'); // 'image' | 'video' | null
+            }
 
             // Pin post ke atas profil
-            $table->boolean('is_pinned')->default(false)->after('media_type');
+            if (!Schema::hasColumn('posts', 'is_pinned')) {
+                $table->boolean('is_pinned')->default(false)->after('media_type');
+            }
 
             // Visibilitas post: public = semua, close_friend = hanya close friend
-            $table->enum('visibility', ['public', 'close_friend'])->default('public')->after('is_pinned');
+            if (!Schema::hasColumn('posts', 'visibility')) {
+                $table->enum('visibility', ['public', 'close_friend'])->default('public')->after('is_pinned');
+            }
         });
     }
 

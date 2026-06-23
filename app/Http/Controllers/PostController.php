@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\Like;
+use App\Models\Poll;
+use App\Models\PollOption;
 use App\Models\Setting;
 use App\Models\Hashtag;
 use App\Models\CloseFriend;
@@ -41,7 +43,7 @@ class PostController extends Controller
             $posts = Post::whereIn('account_id', $acceptedFollowingIds)
                          ->orWhere('account_id', $currentUserId)
                          ->whereNotIn('account_id', $blockedIds)
-                         ->with(['account', 'likes', 'comments', 'hashtags', 'bookmarks'])
+                         ->with(['account', 'likes', 'comments', 'hashtags', 'bookmarks', 'poll.options.votes'])
                          ->latest()
                          ->get()
                          ->filter(function ($post) use ($currentUserId, $myCloseFriendIds) {
@@ -54,7 +56,7 @@ class PostController extends Controller
         } else {
             $privateAccountIds = Setting::where('isPrivateAccount', true)->pluck('account_id')->toArray();
 
-            $posts = Post::with(['account', 'likes', 'comments', 'hashtags', 'bookmarks'])
+            $posts = Post::with(['account', 'likes', 'comments', 'hashtags', 'bookmarks', 'poll.options.votes'])
                          ->whereNotIn('account_id', $blockedIds)
                          ->where(function ($query) use ($currentUserId, $acceptedFollowingIds, $privateAccountIds) {
                              $query->whereNotIn('account_id', $privateAccountIds)
@@ -78,10 +80,25 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'content'    => 'required|string|max:350',
-            'media'      => 'nullable|file|mimes:jpg,jpeg,png,gif,mp4,mov,webm|max:20480',
-            'visibility' => 'nullable|in:public,close_friend',
+            'content'        => 'required|string|max:350',
+            'media'          => 'nullable|file|mimes:jpg,jpeg,png,gif,mp4,mov,webm|max:20480',
+            'visibility'     => 'nullable|in:public,close_friend',
+            'poll_question'  => 'nullable|string|max:180',
+            'poll_options'   => 'nullable|array',
+            'poll_options.*' => 'nullable|string|max:80',
         ]);
+
+        $pollQuestion = trim((string) $request->input('poll_question', ''));
+        $pollOptions = collect($request->input('poll_options', []))
+            ->map(fn ($value) => trim((string) $value))
+            ->filter(fn ($value) => $value !== '')
+            ->values();
+
+        if ($pollQuestion !== '' && $pollOptions->count() < 2) {
+            return back()
+                ->withErrors(['poll_options' => 'Polling harus memiliki minimal 2 opsi.'])
+                ->withInput();
+        }
 
         // Handle upload media
         $mediaPath = null;
@@ -100,6 +117,21 @@ class PostController extends Controller
             'media_type' => $mediaType,
             'visibility' => $request->input('visibility', 'public'),
         ]);
+
+        if ($pollQuestion !== '') {
+            $poll = Poll::create([
+                'post_id' => $post->id,
+                'question' => $pollQuestion,
+            ]);
+
+            foreach ($pollOptions as $index => $optionText) {
+                PollOption::create([
+                    'poll_id' => $poll->id,
+                    'text'    => $optionText,
+                    'order'   => $index + 1,
+                ]);
+            }
+        }
 
         $this->syncHashtags($post, $request->content);
 

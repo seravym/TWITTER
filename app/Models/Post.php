@@ -8,6 +8,7 @@ use App\Models\Like;
 use App\Models\Hashtag;
 use App\Models\Bookmark;
 use App\Models\CloseFriend;
+use App\Models\Poll;
 
 class Post extends Model
 {
@@ -42,6 +43,11 @@ class Post extends Model
     public function comments()
     {
         return $this->hasMany(Comment::class);
+    }
+
+    public function poll()
+    {
+        return $this->hasOne(Poll::class);
     }
 
     /**

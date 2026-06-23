@@ -9,7 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('comments', function (Blueprint $table) {
-            $table->boolean('is_toxic')->default(false)->after('content');
+            if (!Schema::hasColumn('comments', 'is_toxic')) {
+                $table->boolean('is_toxic')->default(false)->after('content');
+            }
         });
     }
 

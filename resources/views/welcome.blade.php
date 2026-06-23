@@ -292,6 +292,14 @@
                     <div class="compose-input-wrapper">
                         <textarea name="content" class="compose-input" rows="2" placeholder="{{ $randomPlaceholder }}" maxlength="350" oninput="updateCount(this)" required id="main-compose"></textarea>
 
+                        {{-- Poll builder --}}
+                        <div id="poll-builder" style="display:none; margin-top: 10px; padding: 12px; border-radius: 16px; background: #f7f9fa; border: 1px solid #eff3f4;">
+                            <input type="text" name="poll_question" class="compose-input" maxlength="180" placeholder="Ask a question..." style="width:100%; margin-bottom: 10px;">
+                            @for ($i = 1; $i <= 4; $i++)
+                                <input type="text" name="poll_options[]" class="compose-input" maxlength="80" placeholder="Option {{ $i }}" style="width:100%; margin-bottom: 8px;">
+                            @endfor
+                        </div>
+
                         {{-- Preview media yang dipilih --}}
                         <div id="mediaPreviewArea" style="display:none; margin-top: 10px;"></div>
 
@@ -313,6 +321,7 @@
                                         title="Post ke Close Friends saja">🌟 Close Friends</button>
                                     <input type="hidden" name="visibility" id="visibilityInput" value="public">
                                 </div>
+                                <button type="button" onclick="togglePollBuilder()" class="btn-emoji" title="Create a poll" style="border:1px solid #cfe8ff; background:#eef7ff;">📊 Poll</button>
                             </div>
 
                             <div style="display: flex; align-items: center; gap: 15px;">
@@ -410,6 +419,40 @@
                         @if($post->visibility === 'close_friend')
                             <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(19,78,94,0.08);color:#134e5e;font-size:0.78em;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:10px;">
                                 🌟 Close Friends Only
+                            </div>
+                        @endif
+
+                        @if($post->poll)
+                            @php
+                                $userVote = $post->poll->votes->firstWhere('account_id', Auth::id());
+                                $totalVotes = $post->poll->votes->count();
+                            @endphp
+                            <div style="margin: 15px 0; padding: 14px; background: #f7f9fa; border: 1px solid #eff3f4; border-radius: 18px;">
+                                <div style="font-weight: 700; margin-bottom: 12px;">{{ $post->poll->question }}</div>
+                                <form action="{{ route('polls.vote', $post) }}" method="POST">
+                                    @csrf
+                                    @foreach($post->poll->options as $option)
+                                        @php
+                                            $optionVotes = $option->votes->count();
+                                            $percent = $totalVotes > 0 ? round(($optionVotes / $totalVotes) * 100) : 0;
+                                        @endphp
+                                        <div style="margin-bottom: 10px;">
+                                            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                                                <input type="radio" name="poll_option_id" value="{{ $option->id }}" {{ ($userVote && $userVote->poll_option_id == $option->id) ? 'checked' : '' }} {{ $post->poll->isClosed() ? 'disabled' : '' }}>
+                                                <span style="font-size:0.96em;">{{ $option->text }}</span>
+                                            </label>
+                                            <div style="background:#e8eef5;height:10px;border-radius:999px;overflow:hidden;margin-top:8px;">
+                                                <div style="width:{{ $percent }}%;background:#1da1f2;height:100%;"></div>
+                                            </div>
+                                            <div style="font-size:0.82em;color:#536471; margin-top: 4px;">{{ $optionVotes }} vote(s) · {{ $percent }}%</div>
+                                        </div>
+                                    @endforeach
+                                    @if(!$post->poll->isClosed())
+                                        <button type="submit" class="btn-post" style="padding: 8px 14px; margin-top: 5px;">Vote</button>
+                                    @else
+                                        <div style="color:#536471;font-size:0.9em;margin-top:4px;">Polling closed</div>
+                                    @endif
+                                </form>
                             </div>
                         @endif
                         
