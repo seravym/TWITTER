@@ -11,21 +11,26 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('comments', function (Blueprint $table) {
-            if (!Schema::hasColumn('comments', 'parent_id')) {
-                $table->foreignId('parent_id')->nullable()->constrained('comments')->onDelete('cascade')->after('post_id');
-            }
-        });
+        if (!Schema::hasColumn('comments', 'parent_id')) {
+            Schema::table('comments', function (Blueprint $table) {
+                $table->foreignId('parent_id')
+                    ->nullable()
+                    ->constrained('comments')
+                    ->onDelete('cascade')
+                    ->after('post_id');
+            });
+        }
     }
-
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::table('comments', function (Blueprint $table) {
-            $table->dropForeign(['parent_id']);
-            $table->dropColumn('parent_id');
-        });
+        if (Schema::hasColumn('comments', 'parent_id')) {
+            Schema::table('comments', function (Blueprint $table) {
+                $table->dropForeign(['parent_id']);
+                $table->dropColumn('parent_id');
+            });
+        }
     }
 };

@@ -8,8 +8,7 @@ class PollOption extends Model
 {
     protected $fillable = [
         'poll_id',
-        'text',
-        'order',
+        'option_text',
     ];
 
     public function poll()
@@ -20,5 +19,10 @@ class PollOption extends Model
     public function votes()
     {
         return $this->hasMany(PollVote::class);
+    }
+
+    public function votesCount()
+    {
+        return $this->votes()->count();
     }
 }

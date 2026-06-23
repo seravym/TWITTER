@@ -70,6 +70,9 @@
         .action-menu-dropdown a:hover { background: #f7f9fa; }
         .action-menu-dropdown a.text-danger { color: #f4212e; }
         .action-menu-dropdown a.text-danger:hover { background: #fdeced; }
+        .account-report-form { padding: 12px 16px; border-top: 1px solid #eff3f4; }
+        .account-report-form select, .account-report-form textarea { width: 100%; box-sizing: border-box; border: 1px solid #cfd9de; border-radius: 10px; padding: 8px; margin-bottom: 8px; font-family: inherit; }
+        .account-report-form button { width: 100%; background: #f4212e; color: white; border: none; border-radius: 20px; padding: 8px 12px; font-weight: 800; cursor: pointer; }
 
         .profile-tabs { display: flex; margin-top: 25px; border-top: 1px solid #eff3f4; padding-top: 5px; }
         .tab-item { flex: 1; text-align: center; padding: 15px 0; cursor: pointer; font-weight: 700; color: #536471; border-bottom: 2px solid transparent; transition: 0.2s; }
@@ -79,6 +82,10 @@
         .tab-content.active { display: block; animation: fadeIn 0.3s; }
         .feed-card { border-bottom: 1px solid #eff3f4; padding-bottom: 20px; margin-bottom: 20px; }
         .feed-card:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .profile-media { margin-top: 10px; border-radius: 14px; overflow: hidden; }
+        .profile-media img, .profile-media video { width: 100%; max-height: 320px; object-fit: cover; border-radius: 14px; background: #000; display: block; }
+        .profile-action-row { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; color: #536471; font-size: 0.9em; }
+        .profile-action-row a { color: #1da1f2; text-decoration: none; font-weight: 700; }
         
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
         .modal-content { background-color: white; margin: 4% auto; padding: 0; border-radius: 24px; width: 90%; max-width: 600px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; position: relative; display: flex; flex-direction: column; min-height: 60vh; }
@@ -109,6 +116,12 @@
         return $gradients[$id % count($gradients)];
     }
 
+    function profileTextLinks($text) {
+        $escaped = e($text);
+        $escaped = preg_replace('/@([A-Za-z0-9_]+)/', '<a href="/accounts/$1" style="color:#1da1f2;text-decoration:none;font-weight:bold;">@$1</a>', $escaped);
+        return preg_replace('/#([A-Za-z0-9_]+)/', '<a href="/hashtags/$1" style="color:#1da1f2;text-decoration:none;font-weight:bold;">#$1</a>', $escaped);
+    }
+
     $prompts = ['How are you feeling today?', 'What song is on your mind?', 'Craving some food?', 'What are you busy with?'];
     $randomPrompt = $prompts[array_rand($prompts)];
     $hasActiveStory = $account->stories()->where('expires_at', '>', now())->exists();
@@ -128,7 +141,8 @@
         $myFollowingIdsList = Auth::user()->following()->where('status', 'accepted')->pluck('following_id')->toArray();
         $myPendingIdsList = Auth::user()->following()->where('status', 'pending')->pluck('following_id')->toArray();
         $followersOfMeList = Auth::user()->followers()->where('status', 'accepted')->pluck('follower_id')->toArray();
-        
+        $closeFriendIds = \App\Models\CloseFriend::where('account_id', Auth::id())->pluck('friend_id')->toArray();
+
         if(!$isMyProfile) {
             $amFollowing = in_array($account->id, $myFollowingIdsList);
             $isPending = in_array($account->id, $myPendingIdsList);
@@ -151,7 +165,9 @@
     <div class="profile-content">
         <div class="threads-header">
             <div class="threads-info">
-                <h1 class="threads-name">{{ $account->name }}</h1>
+                <h1 class="threads-name">
+                    {{ $account->name }}
+                </h1>
                 <div class="threads-username">@ {{ $account->username }}</div>
             </div>
             
@@ -230,8 +246,11 @@
                         </form>
                     @endif
                 @else
-                    <a href="/accounts/{{ $account->id }}/edit" style="display: block; width: 100%;">
+                    <a href="/accounts/{{ $account->id }}/edit" style="display: block; width: 100%; margin-bottom: 10px;">
                         <button class="btn-edit">Edit Profile</button>
+                    </a>
+                    <a href="{{ route('posts.archive.index') }}" style="display: block; width: 100%; text-decoration:none;">
+                        <button class="btn-edit" type="button">🗄️ View Archive</button>
                     </a>
                 @endif
             @endauth
@@ -249,7 +268,7 @@
             </div>
 
             <div id="postsArea" class="tab-content {{ request('tab') == 'comments' ? '' : 'active' }}">
-                @php $userPosts = $account->posts()->latest()->get(); @endphp
+                @php $userPosts = $account->posts()->whereNull('archived_at')->latest()->get(); @endphp
                 @if($userPosts->isEmpty())
                     <div style="text-align: center; color: #536471; padding: 40px 0;">No posts yet.</div>
                 @else
@@ -261,8 +280,23 @@
                                 </div>
                                 <div>
                                     <div style="font-weight: bold; color: #0f1419;">{{ $account->name }} <span style="color: #536471; font-weight: normal; font-size: 0.9em;">• {{ $post->created_at->diffForHumans() }}</span></div>
-                                    <div style="margin-top: 5px; font-size: 1.05em; line-height: 1.5;">{{ $post->content }}</div>
-                                    <div style="margin-top: 10px; color: #536471; font-size: 0.9em;">❤️ {{ $post->likes()->count() }} • 💬 {{ $post->comments()->count() }}</div>
+                                    <div style="margin-top: 5px; font-size: 1.05em; line-height: 1.5;">{!! profileTextLinks($post->content) !!}</div>
+                                    @if($post->media_path)
+                                        <div class="profile-media">
+                                            @if($post->media_type === 'video')
+                                                <video controls><source src="{{ asset('storage/' . $post->media_path) }}"></video>
+                                            @else
+                                                <img src="{{ asset('storage/' . $post->media_path) }}" alt="Post media">
+                                            @endif
+                                        </div>
+                                    @endif
+                                    <div class="profile-action-row">
+                                        <span>❤️ {{ $post->likes()->count() }}</span>
+                                        <span>💬 {{ $post->comments()->count() }}</span>
+                                        @if($post->media_path)
+                                            <a href="{{ route('posts.downloadMedia', $post) }}">⬇️ Download Media</a>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -316,7 +350,7 @@
                                     </div>
 
                                     <div style="margin-top: 5px; font-size: 1.05em; line-height: 1.5; color: #0f1419;">
-                                        {{ $comment->content }}
+                                        {!! profileTextLinks($comment->content) !!}
                                     </div>
                                     
                                     <div style="display: flex; justify-content: flex-end; align-items: center; gap: 15px; margin-top: 12px; color: #536471; font-size: 0.9em;">
@@ -414,7 +448,12 @@
                                 </div>
                             </a>
                             <div style="flex: 1;">
-                                <a href="/accounts/{{ $uid }}" style="display: block;">{{ $f->follower->name }}</a>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <a href="/accounts/{{ $uid }}" style="display: block; font-weight: bold; color: #0f1419; text-decoration: none;">{{ $f->follower->name }}</a>
+                                    @if(in_array($uid, $closeFriendIds))
+                                        <span style="background: rgba(19, 78, 94, 0.1); color: #134e5e; font-size: 0.7em; padding: 2px 8px; border-radius: 12px; font-weight: 800;" title="Close Friend">🌟 CF</span>
+                                    @endif
+                                </div>
                                 <div style="color: #536471; font-size: 0.9em; line-height: 1.2; margin-top: 2px;">@ {{ $f->follower->username }}</div>
                             </div>
                             
@@ -441,8 +480,33 @@
                                         <div style="position: relative; display: inline-block;">
                                             <button onclick="toggleActionMenu(event, 'drop-f-{{$uid}}')" style="background: none; border: none; color: #536471; font-weight: bold; font-size: 1.4em; padding: 0 5px; cursor: pointer; line-height: 1;">⋮</button>
                                             <div id="drop-f-{{$uid}}" class="action-menu-dropdown action-menu-popup">
+                                                @if(in_array($uid, $myFollowingIdsList))
+                                                    @if(in_array($uid, $closeFriendIds))
+                                                        <form action="{{ route('close-friends.destroy', $uid) }}" method="POST" style="margin:0;">
+                                                            @csrf @method('DELETE')
+                                                            <button type="submit" style="width: 100%; text-align: left; padding: 14px 20px; border: none; background: none; color: #f4212e; font-weight: 600; cursor: pointer; font-size: 0.95em;">✕ Hapus Close Friends</button>
+                                                        </form>
+                                                    @else
+                                                        <form action="{{ route('close-friends.store', $uid) }}" method="POST" style="margin:0;">
+                                                            @csrf
+                                                            <button type="submit" style="width: 100%; text-align: left; padding: 14px 20px; border: none; background: none; color: #134e5e; font-weight: 700; cursor: pointer; font-size: 0.95em;">🌟 Tambah Close Friends</button>
+                                                        </form>
+                                                    @endif
+                                                    <div style="height: 1px; background: #eff3f4; margin: 0;"></div>
+                                                @endif
+
                                                 <a href="/messages/{{ $uid }}">💬 Direct Message</a>
-                                                <a href="#" class="text-danger">🚫 Block / Report</a>
+<form action="{{ route('reports.accounts.store', $uid) }}" method="POST" class="account-report-form">
+                                                    @csrf
+                                                    <select name="reason" required>
+                                                        <option value="spam">Spam</option>
+                                                        <option value="impersonation">Impersonation</option>
+                                                        <option value="harassment">Harassment</option>
+                                                        <option value="inappropriate">Inappropriate content</option>
+                                                    </select>
+                                                    <textarea name="details" rows="2" placeholder="Detail tambahan (opsional)"></textarea>
+                                                    <button type="submit" onclick="return confirm('Kirim report akun ini?')">🚫 Report Account</button>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>
@@ -496,7 +560,13 @@
                                 </div>
                             </a>
                             <div style="flex: 1;">
-                                <a href="/accounts/{{ $uid }}" style="display: block;">{{ $g->following->name }}</a>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <a href="/accounts/{{ $uid }}" style="display: block; font-weight: bold; color: #0f1419; text-decoration: none;">{{ $g->following->name }}</a>
+                                    <!-- Badge Close Friend -->
+                                    @if(in_array($uid, $closeFriendIds))
+                                        <span style="background: rgba(19, 78, 94, 0.1); color: #134e5e; font-size: 0.7em; padding: 2px 8px; border-radius: 12px; font-weight: 800;" title="Close Friend">🌟 CF</span>
+                                    @endif
+                                </div>
                                 <div style="color: #536471; font-size: 0.9em; line-height: 1.2; margin-top: 2px;">@ {{ $g->following->username }}</div>
                             </div>
 
@@ -523,8 +593,31 @@
                                         <div style="position: relative; display: inline-block;">
                                             <button onclick="toggleActionMenu(event, 'drop-g-{{$uid}}')" style="background: none; border: none; color: #536471; font-weight: bold; font-size: 1.4em; padding: 0 5px; cursor: pointer; line-height: 1;">⋮</button>
                                             <div id="drop-g-{{$uid}}" class="action-menu-dropdown action-menu-popup">
+                                                @if(in_array($uid, $closeFriendIds))
+                                                    <form action="{{ route('close-friends.destroy', $uid) }}" method="POST" style="margin:0;">
+                                                        @csrf @method('DELETE')
+                                                        <button type="submit" style="width: 100%; text-align: left; padding: 14px 20px; border: none; background: none; color: #f4212e; font-weight: 600; cursor: pointer; font-size: 0.95em;">✕ Hapus Close Friends</button>
+                                                    </form>
+                                                @else
+                                                    <form action="{{ route('close-friends.store', $uid) }}" method="POST" style="margin:0;">
+                                                        @csrf
+                                                        <button type="submit" style="width: 100%; text-align: left; padding: 14px 20px; border: none; background: none; color: #134e5e; font-weight: 700; cursor: pointer; font-size: 0.95em;">🌟 Tambah Close Friends</button>
+                                                    </form>
+                                                @endif
+                                                <div style="height: 1px; background: #eff3f4; margin: 0;"></div>
+
                                                 <a href="/messages/{{ $uid }}">💬 Direct Message</a>
-                                                <a href="#" class="text-danger">🚫 Block / Report</a>
+<form action="{{ route('reports.accounts.store', $uid) }}" method="POST" class="account-report-form">
+                                                    @csrf
+                                                    <select name="reason" required>
+                                                        <option value="spam">Spam</option>
+                                                        <option value="impersonation">Impersonation</option>
+                                                        <option value="harassment">Harassment</option>
+                                                        <option value="inappropriate">Inappropriate content</option>
+                                                    </select>
+                                                    <textarea name="details" rows="2" placeholder="Detail tambahan (opsional)"></textarea>
+                                                    <button type="submit" onclick="return confirm('Kirim report akun ini?')">🚫 Report Account</button>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="{{ (Auth::check() && Auth::user()->setting && Auth::user()->setting->theme === 'dark') ? 'dark-mode' : '' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
+        :root { --bg: #f7f9fa; --card-bg: #ffffff; --text: #0f1419; --text-muted: #536471; --border: #eff3f4; }
+        html.dark-mode { --bg: #15202b; --card-bg: #1e2732; --text: #f7f9fa; --text-muted: #8899a6; --border: #2f3b47; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Inter', -apple-system, sans-serif;
-            background: #f7f9fa; color: #0f1419; min-height: 100vh;
+            background: var(--bg); color: var(--text); min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
         }
 
         .page-header {
@@ -30,20 +33,30 @@
             font-size: 0.9em; font-weight: 700;
         }
 
-        .container { max-width: 640px; margin: -30px auto 0; padding: 0 16px 80px; }
+        .container { 
+            max-width: 640px; 
+            margin: -30px auto 0; 
+            padding: 0 16px 80px; 
+            /* FIX 1: Memastikan container berada di atas header */
+            position: relative; 
+            z-index: 10; 
+        }
 
-        .alert { padding: 14px 18px; border-radius: 14px; font-weight: 700; margin-bottom: 16px; font-size: 0.95em; }
+        .alert {
+            padding: 14px 18px; border-radius: 14px; font-weight: 700;
+            margin-bottom: 16px; font-size: 0.95em;
+        }
         .alert-success { background: #eafff0; color: #166534; }
         .alert-error   { background: #fef2f2; color: #991b1b; }
 
         .info-card {
-            background: white; border-radius: 20px; border: 1px solid #eff3f4;
-            padding: 18px 22px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            background: var(--card-bg); border-radius: 20px; border: 1px solid var(--border);
+            padding: 18px 22px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             display: flex; gap: 14px; align-items: flex-start;
         }
         .info-icon { font-size: 1.8em; flex-shrink: 0; }
-        .info-text strong { font-size: 1em; font-weight: 800; color: #0f1419; display: block; margin-bottom: 4px; }
-        .info-text p { font-size: 0.88em; color: #536471; line-height: 1.5; }
+        .info-text strong { font-size: 1em; font-weight: 800; color: var(--text); display: block; margin-bottom: 4px; }
+        .info-text p { font-size: 0.88em; color: var(--text-muted); line-height: 1.5; }
 
         .section-label {
             font-size: 0.78em; font-weight: 800; text-transform: uppercase;
@@ -52,7 +65,7 @@
 
         .friends-list { display: flex; flex-direction: column; gap: 10px; }
         .friend-card {
-            background: white; border-radius: 18px; border: 1px solid #eff3f4;
+            background: var(--card-bg); border-radius: 18px; border: 1px solid var(--border);
             padding: 16px 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);
             display: flex; align-items: center; gap: 14px;
             transition: all 0.2s ease;
@@ -76,8 +89,8 @@
         }
 
         .friend-info { flex: 1; min-width: 0; }
-        .friend-name { font-weight: 800; font-size: 1em; color: #0f1419; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .friend-username { font-size: 0.85em; color: #536471; margin-top: 2px; }
+        .friend-name { font-weight: 800; font-size: 1em; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .friend-username { font-size: 0.85em; color: var(--text-muted); margin-top: 2px; }
         .cf-badge {
             display: inline-flex; align-items: center; gap: 4px;
             background: rgba(19,78,94,0.1); color: #134e5e;
@@ -101,9 +114,11 @@
         }
         .btn-remove:hover { background: #ef4444; color: white; }
 
-        .empty-state { text-align: center; padding: 60px 20px; color: #536471; }
+        .empty-state {
+            text-align: center; padding: 60px 20px; color: #536471;
+        }
         .empty-state .emoji { font-size: 3.5em; margin-bottom: 16px; }
-        .empty-state h3 { font-size: 1.2em; font-weight: 800; color: #0f1419; margin-bottom: 8px; }
+        .empty-state h3 { font-size: 1.2em; font-weight: 800; color: var(--text); margin-bottom: 8px; }
         .empty-state p { font-size: 0.9em; line-height: 1.6; }
         .empty-state a {
             display: inline-block; margin-top: 18px;
@@ -112,6 +127,10 @@
             text-decoration: none; font-weight: 700; transition: 0.2s;
         }
         .empty-state a:hover { opacity: 0.85; }
+
+        @media (max-width: 600px) {
+            .page-title-hero { font-size: 1.8em; }
+        }
     </style>
 </head>
 <body>
@@ -147,6 +166,7 @@ function cfAvatarGradient($id) {
         <div class="alert alert-error">✗ {{ $errors->first() }}</div>
     @endif
 
+    {{-- Info card --}}
     <div class="info-card">
         <div class="info-icon">💡</div>
         <div class="info-text">
@@ -174,18 +194,21 @@ function cfAvatarGradient($id) {
                     </a>
                     <div class="friend-info">
                         <div class="friend-name">{{ $account->name }}</div>
-                        <div class="friend-username">@{{ $account->username }}</div>
+                        <!-- FIX 2: Perbaikan pemanggilan variabel blade agar tidak ter-escape (menghapus tanda @) -->
+                        <div class="friend-username">{{ '@' . $account->username }}</div>
                         @if($isCF)
                             <div class="cf-badge">🌟 Close Friend</div>
                         @endif
                     </div>
 
                     @if($isCF)
+                        {{-- Tombol hapus dari close friend --}}
                         <form action="{{ route('close-friends.destroy', $account->id) }}" method="POST" style="margin:0;">
                             @csrf @method('DELETE')
                             <button type="submit" class="btn-remove" onclick="return confirm('Hapus dari close friends?')">✕ Hapus</button>
                         </form>
                     @else
+                        {{-- Tombol tambah ke close friend --}}
                         <form action="{{ route('close-friends.store', $account->id) }}" method="POST" style="margin:0;">
                             @csrf
                             <button type="submit" class="btn-add">🌟 Tambah</button>

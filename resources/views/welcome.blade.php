@@ -1,10 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="{{ (Auth::check() && Auth::user()->setting && Auth::user()->setting->theme === 'dark') ? 'dark-mode' : '' }}">
 <head>
     <meta charset="UTF-8">
     <title>Home - Twitter</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f7f9fa; margin: 0; padding: 0; color: #0f1419; }
+        :root {
+            --bg: #f7f9fa; --card-bg: #ffffff; --text: #0f1419; --text-muted: #536471;
+            --border: #eff3f4; --hover-bg: #e8f5fe; --compose-bg: #fcfdfe;
+            --accent: #1da1f2; --shadow: 0 4px 15px rgba(0,0,0,0.03);
+            --feed-sep: #eff3f4; --comment-bg: #fafbfc;
+        }
+        html.dark-mode {
+            --bg: #15202b; --card-bg: #1e2732; --text: #f7f9fa; --text-muted: #8899a6;
+            --border: #2f3b47; --hover-bg: #253341; --compose-bg: #253341;
+            --accent: #1d9bf0; --shadow: 0 4px 15px rgba(0,0,0,0.3);
+            --feed-sep: #2f3b47; --comment-bg: #192734;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--bg); margin: 0; padding: 0; color: var(--text); transition: background 0.3s, color 0.3s; }
         .app-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; padding-top: 20px; }
         
         .sidebar { width: 30%; position: sticky; top: 20px; height: max-content; padding-right: 25px; box-sizing: border-box; }
@@ -13,8 +25,8 @@
         .bell-icon:hover { background: #e8f5fe; color: #1da1f2; }
         .bell-dot { position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; background: #f4212e; border-radius: 50%; }
         
-        .sidebar-card { background: white; border: 1px solid #eff3f4; border-radius: 20px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
-        .sidebar-profile { text-align: center; border-bottom: 1px solid #eff3f4; padding-bottom: 25px; margin-bottom: 20px; position: relative; }
+        .sidebar-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 25px; box-shadow: var(--shadow); }
+        .sidebar-profile { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 25px; margin-bottom: 20px; position: relative; }
         
         .profile-avatar-wrapper { position: relative; width: 100px; height: 100px; margin: 0 auto 15px auto; }
         .sidebar-avatar { width: 100%; height: 100%; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 35px; text-transform: uppercase; transition: 0.2s; position: relative; z-index: 2; border: 3px solid white; box-sizing: border-box; }
@@ -25,39 +37,47 @@
         .status-bubble-feed { position: absolute; top: -4px; right: -6px; background: white; border: 1px solid #eff3f4; padding: 2px 6px; border-radius: 12px; font-size: 10px; color: #0f1419; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-weight: 700; z-index: 10; cursor: default; }
         .status-bubble-sidebar:active { transform: scale(0.9); }
 
-        .sidebar-name { font-weight: 800; font-size: 1.3em; color: #0f1419; margin-bottom: 5px; }
-        .sidebar-username { color: #536471; font-size: 1em; margin-bottom: 15px; }
-        .sidebar-stats { display: flex; justify-content: center; gap: 20px; font-size: 0.9em; color: #536471; }
+        .sidebar-name { font-weight: 800; font-size: 1.3em; color: var(--text); margin-bottom: 5px; }
+        .sidebar-username { color: var(--text-muted); font-size: 1em; margin-bottom: 15px; }
+        .sidebar-stats { display: flex; justify-content: center; gap: 20px; font-size: 0.9em; color: var(--text-muted); }
         .stat-link { cursor: pointer; transition: 0.2s; padding: 5px 10px; border-radius: 10px; }
-        .stat-link:hover { background: #f7f9fa; color: #0f1419; }
-        .sidebar-stats strong { color: #0f1419; font-size: 1.2em; display: block; }
+        .stat-link:hover { background: var(--hover-bg); color: var(--text); }
+        .sidebar-stats strong { color: var(--text); font-size: 1.2em; display: block; }
+        .poll-compose-box { display: none; margin-top: 12px; padding: 14px; border: 1px dashed var(--border); border-radius: 16px; background: var(--card-bg); }
+        .poll-compose-box input, .poll-compose-box select { width: 100%; box-sizing: border-box; padding: 9px 12px; margin-top: 8px; border: 1px solid var(--border); border-radius: 12px; background: var(--compose-bg); color: var(--text); font-family: inherit; outline: none; }
+        .poll-compose-box input:focus, .poll-compose-box select:focus { border-color: var(--accent); }
+        .poll-card { margin: 15px 0; padding: 14px; background: var(--compose-bg); border: 1px solid var(--border); border-radius: 18px; }
+        .poll-option-row { margin-bottom: 10px; }
+        .poll-bar { background: var(--border); height: 10px; border-radius: 999px; overflow: hidden; margin-top: 8px; }
+        .poll-bar-fill { background: var(--accent); height: 100%; border-radius: 999px; }
         
         .btn-view-profile { display: block; width: 100%; background: #0f1419; color: white; padding: 12px 0; border-radius: 30px; text-decoration: none; font-weight: bold; margin-top: 20px; transition: 0.2s; font-size: 1em; }
         .btn-view-profile:hover { background: #272c30; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
         .nav-menu { list-style: none; padding: 0; margin: 0; }
         .nav-menu li { margin-bottom: 5px; }
-        .nav-menu a { display: flex; align-items: center; gap: 15px; padding: 12px 15px; text-decoration: none; color: #0f1419; font-size: 1.1em; border-radius: 30px; transition: background 0.2s; font-weight: 600; }
-        .nav-menu a:hover { background-color: #e8f5fe; color: #1da1f2; }
+        .nav-menu a { display: flex; align-items: center; gap: 15px; padding: 12px 15px; text-decoration: none; color: var(--text); font-size: 1.1em; border-radius: 30px; transition: background 0.2s; font-weight: 600; }
+        .nav-menu a:hover { background-color: var(--hover-bg); color: var(--accent); }
         
         .btn-logout { width: 100%; background: white; color: #f4212e; border: 1px solid #f4212e; padding: 12px; border-radius: 30px; font-weight: bold; font-size: 1em; cursor: pointer; margin-top: 15px; transition: 0.2s; }
         .btn-logout:hover { background: #f4212e; color: white; border-color: #f4212e; }
 
-        .main-feed { width: 68%; background: white; border: 1px solid #eff3f4; border-radius: 20px; min-height: 100vh; padding-bottom: 50px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.01); }
-        .feed-header { position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 10; border-bottom: 1px solid #eff3f4; }
-        .page-title { font-size: 1.4em; font-weight: 900; padding: 20px 15px 10px 15px; margin: 0; color: #0f1419; text-align: center; } 
+        .main-feed { width: 68%; background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; min-height: 100vh; padding-bottom: 50px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.01); }
+        .feed-header { position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 10; border-bottom: 1px solid var(--border); }
+        html.dark-mode .feed-header { background: rgba(30,39,50,0.95); }
+        .page-title { font-size: 1.4em; font-weight: 900; padding: 20px 15px 10px 15px; margin: 0; color: var(--text); text-align: center; } 
         .feed-tabs { display: flex; padding: 0 15px; }
-        .tab-item { flex: 1; text-align: center; padding: 15px 0; text-decoration: none; color: #536471; font-weight: 700; transition: 0.2s; position: relative; font-size: 1.05em; }
-        .tab-item:hover { background-color: #f7f9fa; color: #0f1419; border-radius: 8px 8px 0 0; }
-        .tab-item.active { color: #0f1419; }
+        .tab-item { flex: 1; text-align: center; padding: 15px 0; text-decoration: none; color: var(--text-muted); font-weight: 700; transition: 0.2s; position: relative; font-size: 1.05em; }
+        .tab-item:hover { background-color: var(--hover-bg); color: var(--text); border-radius: 8px 8px 0 0; }
+        .tab-item.active { color: var(--text); }
         .tab-item.active::after { content: ''; position: absolute; bottom: 0; left: 25%; width: 50%; height: 4px; background-color: #1da1f2; border-radius: 4px 4px 0 0; }
 
-        .compose-area { padding: 25px; background-color: white; border-bottom: 8px solid #eff3f4; display: flex; gap: 20px; }
-        .compose-input-wrapper { flex: 1; border: 1px solid #cfd9de; border-radius: 16px; padding: 10px 15px; transition: 0.2s; background: #fcfdfe; position: relative;}
-        .compose-input-wrapper:focus-within { border-color: #1da1f2; box-shadow: 0 0 0 1px #1da1f2; background: white; }
-        .compose-input { width: 100%; box-sizing: border-box; border: none; font-size: 1.15em; outline: none; resize: none; background: transparent; color: #0f1419; font-family: inherit; }
-        .compose-input::placeholder { color: #8899a6; font-weight: 500; }
-        .compose-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px solid #eff3f4; padding-top: 10px; }
+        .compose-area { padding: 25px; background-color: var(--card-bg); border-bottom: 8px solid var(--feed-sep); display: flex; gap: 20px; }
+        .compose-input-wrapper { flex: 1; border: 1px solid var(--border); border-radius: 16px; padding: 10px 15px; transition: 0.2s; background: var(--compose-bg); position: relative;}
+        .compose-input-wrapper:focus-within { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); background: var(--card-bg); }
+        .compose-input { width: 100%; box-sizing: border-box; border: none; font-size: 1.15em; outline: none; resize: none; background: transparent; color: var(--text); font-family: inherit; }
+        .compose-input::placeholder { color: var(--text-muted); font-weight: 500; }
+        .compose-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px; }
         
         .btn-post { background: #1da1f2; color: white; border: none; padding: 8px 24px; font-weight: bold; border-radius: 30px; cursor: pointer; font-size: 1em; transition: 0.2s; }
         .btn-post:hover { background: #1a91da; }
@@ -69,30 +89,39 @@
         .emoji-item { cursor: pointer; font-size: 1.2em; text-align: center; padding: 5px; border-radius: 8px; transition: 0.2s; }
         .emoji-item:hover { background: #e8f5fe; }
 
-        .post-card { border-bottom: 8px solid #eff3f4; transition: 0.2s; position: relative; }
-        .post-inner { padding: 25px 25px 15px 25px; background: white; }
-        .post-card:hover .post-inner { background: #fdfdfe; }
-        .my-post { border-left: 4px solid #1da1f2; }
-        .my-post-badge { position: absolute; top: 25px; right: 25px; background: #e8f5fe; color: #1da1f2; font-size: 0.75em; font-weight: bold; padding: 4px 10px; border-radius: 12px; }
+        .post-card { border-bottom: 8px solid var(--feed-sep); transition: 0.2s; position: relative; }
+        .post-inner { padding: 25px 25px 15px 25px; background: var(--card-bg); }
+        .post-card:hover .post-inner { background: var(--compose-bg); }
+        .my-post { border-left: 4px solid var(--accent); }
+        .my-post-badge { position: absolute; top: 25px; right: 25px; background: var(--hover-bg); color: var(--accent); font-size: 0.75em; font-weight: bold; padding: 4px 10px; border-radius: 12px; }
 
         .post-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-        .post-name { font-weight: 800; color: #0f1419; text-decoration: none; font-size: 1.1em; display: inline-block; }
+        .post-name { font-weight: 800; color: var(--text); text-decoration: none; font-size: 1.1em; display: inline-block; }
         .post-name:hover { text-decoration: underline; }
-        .post-username { color: #536471; font-size: 0.9em; }
-        .post-time { color: #536471; font-size: 0.9em; margin-left: 5px; }
+        .post-username { color: var(--text-muted); font-size: 0.9em; }
+        .post-time { color: var(--text-muted); font-size: 0.9em; margin-left: 5px; }
         
         .btn-feed-follow { background: #1da1f2; color: white; border: none; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 0.85em; cursor: pointer; transition: 0.2s; }
         .btn-feed-follow:hover { background: #1a91da; }
 
-        .post-content { font-size: 1.15em; line-height: 1.6; margin-bottom: 18px; margin-top: 15px; color: #0f1419; }
+        .post-content { font-size: 1.15em; line-height: 1.6; margin-bottom: 18px; margin-top: 15px; color: var(--text); }
+        .article-section-title { padding: 18px 25px 8px; font-weight: 900; color: var(--text); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .article-preview-card { padding: 22px 25px; border-bottom: 8px solid var(--feed-sep); display: flex; gap: 16px; background: var(--card-bg); }
+        .article-preview-cover { width: 150px; height: 95px; object-fit: cover; border-radius: 16px; background: var(--border); flex-shrink: 0; }
+        .article-preview-title { font-weight: 900; font-size: 1.25em; color: var(--text); text-decoration: none; }
+        .article-preview-title:hover { text-decoration: underline; }
+        .article-preview-meta { color: var(--text-muted); font-size: 0.9em; margin: 5px 0 8px; }
+        .article-preview-excerpt { color: var(--text); opacity: 0.86; line-height: 1.5; margin: 0; }
+        .btn-write-article { background: #0f1419; color: white; padding: 8px 16px; border-radius: 30px; font-weight: bold; text-decoration: none; font-size: 0.95em; white-space: nowrap; }
+        html.dark-mode .btn-write-article { background: #f7f9fa; color: #0f1419; }
         
-        .post-actions { display: flex; gap: 15px; color: #536471; font-size: 0.95em; align-items: center; border-top: 1px solid #eff3f4; padding-top: 12px; margin-top: 15px; }
-        .action-pill { background: #f7f9fa; border: 1px solid #eff3f4; color: inherit; cursor: pointer; font-size: 0.95em; font-weight: 600; display: flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 20px; transition: 0.2s; }
-        .action-pill:hover { background: #e8f5fe; color: #1da1f2; border-color: #cfd9de; }
+        .post-actions { display: flex; gap: 15px; color: var(--text-muted); font-size: 0.95em; align-items: center; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 15px; flex-wrap: wrap; }
+        .action-pill { background: var(--compose-bg); border: 1px solid var(--border); color: inherit; cursor: pointer; font-size: 0.95em; font-weight: 600; display: flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 20px; transition: 0.2s; }
+        .action-pill:hover { background: var(--hover-bg); color: var(--accent); border-color: var(--border); }
         .action-pill.like:hover { background: #fce8f3; color: #f91880; border-color: #f91880; }
         .action-pill.delete:hover { background: #fdeced; color: #f4212e; border-color: #f4212e; }
 
-        .comment-section-wrapper { display: none; background: #fafbfc; border-top: 1px solid #eff3f4; box-shadow: inset 0px 5px 10px rgba(0,0,0,0.01); }
+        .comment-section-wrapper { display: none; background: var(--comment-bg); border-top: 1px solid var(--border); box-shadow: inset 0px 5px 10px rgba(0,0,0,0.01); }
         .comment-list-area { padding: 15px 25px; }
         
         .sort-bar { display: flex; gap: 15px; border-bottom: 1px solid #eff3f4; padding-bottom: 10px; margin-bottom: 20px; font-size: 0.85em; color: #536471; }
@@ -150,6 +179,9 @@
         .action-menu-dropdown a:hover, .action-menu-dropdown button:hover { background: #f7f9fa; }
         .action-menu-dropdown .text-danger { color: #f4212e; }
         .action-menu-dropdown .text-danger:hover { background: #fdeced; }
+        .report-form { padding: 12px 16px; border-top: 1px solid var(--border); }
+        .report-form select, .report-form textarea { width: 100%; box-sizing: border-box; border: 1px solid var(--border); border-radius: 10px; padding: 8px; margin-bottom: 8px; background: var(--card-bg); color: var(--text); font-family: inherit; }
+        .report-form button { width: 100%; background: #f4212e; color: white; border: none; border-radius: 20px; padding: 8px 12px; font-weight: 800; cursor: pointer; }
         .highlight-user { color: #1da1f2; font-weight: 800; }
         
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
@@ -170,7 +202,9 @@
 
 @php
     function parseMentions($text) {
-        return preg_replace('/@(\w+)/', '<a href="/accounts/$1" style="color: #1da1f2; text-decoration: none; font-weight: bold;">@$1</a>', $text);
+        $escaped = e($text);
+        $escaped = preg_replace('/@([A-Za-z0-9_]+)/', '<a href="/accounts/$1" style="color: #1da1f2; text-decoration: none; font-weight: bold;">@$1</a>', $escaped);
+        return preg_replace('/#([A-Za-z0-9_]+)/', '<a href="/hashtags/$1" style="color: #1da1f2; text-decoration: none; font-weight: bold;">#$1</a>', $escaped);
     }
 @endphp
 
@@ -190,13 +224,15 @@
     $followersOfMeList = $me ? $me->followers()->where('status', 'accepted')->pluck('follower_id')->toArray() : [];
     
     $myBubble = $me->active_status ?? null;
+    $pendingMenfessCount = $me ? \App\Models\Menfess::where('base_id', $me->id)->where('status', 'pending')->count() : 0;
 @endphp
 
 <div class="app-container">
     <div class="sidebar">
         <div class="brand">
             Twitter 
-            <span class="bell-icon" title="Notifications">🔔<div class="bell-dot"></div></span>
+            @php $unreadNotifCount = \App\Http\Controllers\NotificationController::unreadCount(); @endphp
+            <a href="/notifications" class="bell-icon" title="Notifications" style="text-decoration:none;">🔔@if($unreadNotifCount > 0)<div class="bell-dot"></div>@endif</a>
         </div>
         
         <div class="sidebar-card">
@@ -213,7 +249,9 @@
                         @endif
                     </div>
                     
-                    <div class="sidebar-name">{{ Auth::user()->name }}</div>
+                    <div class="sidebar-name">
+                        {{ Auth::user()->name }}
+                    </div>
                     <div class="sidebar-username">@ {{ Auth::user()->username }}</div>
                     
                     <div class="sidebar-stats">
@@ -247,14 +285,16 @@
             <ul class="nav-menu">
                 <li><a href="/" onclick="if(window.location.pathname=='/') { window.scrollTo({top: 0, behavior: 'smooth'}); return false; }">🏠 Home</a></li>
                 <li><a href="/accounts">🔍 Explore Users</a></li>
+                <li><a href="/hashtags">🔥 Trending</a></li>
+                <li><a href="/bookmarks">🔖 Bookmarks</a></li>
+                <li><a href="{{ route('posts.archive.index') }}">🗄️ Archive</a></li>
+                <li><a href="{{ route('articles.index') }}">📝 Articles</a></li>
                 <li><a href="/close-friends">🌟 Close Friends</a></li>
+                <li><a href="{{ route('menfess.create') }}">💌 Send Menfess</a></li>
+                <li><a href="{{ route('menfess.index') }}">📥 Menfess Inbox @if($pendingMenfessCount > 0)<span style="background:#f4212e;color:white;font-size:0.7em;padding:2px 8px;border-radius:20px;margin-left:5px;">{{ $pendingMenfessCount }}</span>@endif</a></li>
+                <li><a href="/notifications">🔔 Notifications @php $nc = \App\Http\Controllers\NotificationController::unreadCount(); @endphp @if($nc > 0)<span style="background:#f4212e;color:white;font-size:0.7em;padding:2px 8px;border-radius:20px;margin-left:5px;">{{ $nc }}</span>@endif</a></li>
                 <li><a href="/messages">✉️ Messages</a></li>
-                <li><a href="/communities">👥 Community</a></li> 
-                <li><a href="/menfess/create">📩 Send Menfess</a></li>
-
-                    @if(str_contains(strtolower(Auth::user()->username ?? ''), 'base'))
-                    <li><a href="/menfess">📬 Menfess Queue</a></li>
-                    @endif
+                <li><a href="/communities">👥 Community</a></li>
                 <li><a href="/settings">⚙️ Settings</a></li>
             </ul>
 
@@ -303,6 +343,27 @@
                         {{-- Preview media yang dipilih --}}
                         <div id="mediaPreviewArea" style="display:none; margin-top: 10px;"></div>
 
+                        <div class="emoji-picker-popup" id="emoji-box-main" style="bottom: 72px; left: 15px; right: auto;">
+                            <span class="emoji-item" onclick="insertEmoji('main-compose', '😀')">😀</span>
+                            <span class="emoji-item" onclick="insertEmoji('main-compose', '😂')">😂</span>
+                            <span class="emoji-item" onclick="insertEmoji('main-compose', '🥰')">🥰</span>
+                            <span class="emoji-item" onclick="insertEmoji('main-compose', '🙏')">🙏</span>
+                            <span class="emoji-item" onclick="insertEmoji('main-compose', '🔥')">🔥</span>
+                        </div>
+
+                        <div id="pollComposeBox" class="poll-compose-box">
+                            <input type="text" name="poll_question" placeholder="Question for poll, optional">
+                            <input type="text" name="poll_options[]" placeholder="Option 1">
+                            <input type="text" name="poll_options[]" placeholder="Option 2">
+                            <input type="text" name="poll_options[]" placeholder="Option 3, optional">
+                            <input type="text" name="poll_options[]" placeholder="Option 4, optional">
+                            <select name="poll_duration">
+                                <option value="1">1 Day</option>
+                                <option value="3">3 Days</option>
+                                <option value="7" selected>7 Days</option>
+                            </select>
+                        </div>
+
                         <div class="compose-actions" style="justify-content: space-between;">
                             <div style="display: flex; align-items: center; gap: 10px; position: relative;">
                                 <button type="button" class="btn-emoji" title="Add Emoji" onclick="toggleEmojiBox('emoji-box-main')">😀</button>
@@ -310,6 +371,7 @@
                                 {{-- Tombol upload media --}}
                                 <label for="mediaInput" class="btn-emoji" title="Upload Foto/Video" style="cursor:pointer;">📷</label>
                                 <input type="file" id="mediaInput" name="media" accept="image/*,video/*" style="display:none;" onchange="previewMedia(this)">
+                                <button type="button" class="btn-emoji" title="Add Poll" onclick="togglePollBox()">📊</button>
 
                                 {{-- Visibility selector --}}
                                 <div style="display:flex; align-items:center; gap:6px; margin-left:4px;">
@@ -327,12 +389,35 @@
                             <div style="display: flex; align-items: center; gap: 15px;">
                                 <span id="charCount" style="color: #536471; font-size: 0.85em; font-weight: bold;">0/350</span>
                                 <button type="submit" class="btn-post">Post</button>
+                                <a href="{{ route('articles.create') }}" class="btn-write-article">Write Article</a>
                             </div>
                         </div>
                     </div>
                 </form>
             </div>
         @endauth
+
+        @if(isset($articles) && $articles->count() > 0)
+            <div class="article-section-title">
+                <span>Latest Articles</span>
+                <a href="{{ route('articles.index') }}" style="color:var(--accent);text-decoration:none;font-size:0.85em;">View All</a>
+            </div>
+            @foreach($articles as $article)
+                <div class="article-preview-card">
+                    <img
+                        src="{{ $article->cover_image ? asset('storage/' . $article->cover_image) : asset('images/default-article.svg') }}"
+                        onerror="this.onerror=null;this.src='{{ asset('images/default-article.svg') }}';"
+                        class="article-preview-cover"
+                        alt="Cover"
+                    >
+                    <div>
+                        <a href="{{ route('articles.show', $article) }}" class="article-preview-title">{{ $article->title }}</a>
+                        <div class="article-preview-meta">By @ {{ $article->account->username }} • {{ optional($article->published_at)->diffForHumans() }}</div>
+                        <p class="article-preview-excerpt">{{ $article->excerpt }}</p>
+                    </div>
+                </div>
+            @endforeach
+        @endif
 
         @if($posts->isEmpty())
             <div style="text-align: center; color: #536471; padding: 60px 25px;">
@@ -393,14 +478,25 @@
                                             <a href="/messages/{{ $post->account_id }}">💬 Direct Message</a>
                                             <button onclick="document.getElementById('post-card-{{$post->id}}').style.display='none'">👁️‍🗨️ Hide this post</button>
                                             <div style="height: 1px; background: #eff3f4; margin: 5px 0;"></div>
-                                            <a href="#" class="text-danger">🚫 Block / Report</a>
+<form action="{{ route('reports.posts.store', $post) }}" method="POST" class="report-form">
+                                                @csrf
+                                                <select name="reason" required>
+                                                    <option value="spam">Spam</option>
+                                                    <option value="harassment">Harassment</option>
+                                                    <option value="inappropriate">Inappropriate content</option>
+                                                    <option value="misinformation">Misinformation</option>
+                                                </select>
+                                                <textarea name="details" rows="2" placeholder="Detail tambahan (opsional)"></textarea>
+                                                <button type="submit" onclick="return confirm('Kirim report post ini?')">🚫 Report Post</button>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
                             @endif
                         </div>
                         
-                        <div class="post-content">{{ $post->content }}</div>
+                        <div class="post-content">{!! parseMentions($post->content) !!}</div>
+
                         {{-- Tampilkan media jika ada --}}
                         @if($post->media_path)
                             <div style="margin: 10px 0 15px; border-radius: 16px; overflow: hidden;">
@@ -410,7 +506,7 @@
                                     </video>
                                 @else
                                     <img src="{{ asset('storage/' . $post->media_path) }}" alt="Post media"
-                                        style="width:100%; max-height: 450px; object-fit: cover; border-radius: 16px; display:block;">
+                                         style="width:100%; max-height: 450px; object-fit: cover; border-radius: 16px; display:block;">
                                 @endif
                             </div>
                         @endif
@@ -461,6 +557,20 @@
                                 @csrf<button type="submit" class="action-pill like">{{ $post->isLikedBy(Auth::id()) ? '❤️' : '🤍' }} {{ $post->likes->count() }}</button>
                             </form>
                             <button class="action-pill" onclick="toggleComments({{ $post->id }})">💬 {{ $post->comments->count() }} Comments</button>
+                            @if($post->media_path)
+                                <a href="{{ route('posts.downloadMedia', $post) }}" class="action-pill" style="text-decoration:none;" title="Download media">⬇️ Media</a>
+                            @endif
+                            <form action="{{ route('posts.repost', $post->id) }}" method="POST" style="margin:0;">
+                                @csrf
+                                <button type="submit" class="action-pill" style="{{ $post->isRepostedBy(Auth::id()) ? 'background:#e6fffb;color:#0f766e;border-color:#99f6e4;' : '' }}">🔁 {{ $post->reposts->count() }}</button>
+                            </form>
+                            {{-- Bookmark toggle --}}
+                            <form action="{{ route('bookmarks.toggle', $post->id) }}" method="POST" style="margin:0;">
+                                @csrf
+                                <button type="submit" class="action-pill" style="{{ $post->isBookmarkedBy(Auth::id()) ? 'background:#fffbeb;color:#f59e0b;border-color:#fde68a;' : '' }}" title="{{ $post->isBookmarkedBy(Auth::id()) ? 'Hapus Bookmark' : 'Simpan ke Bookmark' }}">
+                                    {{ $post->isBookmarkedBy(Auth::id()) ? '🔖' : '🏷️' }}
+                                </button>
+                            </form>
                             @if($isMyPost)
                                 {{-- Pin / Unpin --}}
                                 <form action="{{ route('posts.pin', $post->id) }}" method="POST" style="margin:0;">
@@ -469,6 +579,10 @@
                                         style="{{ $post->is_pinned ? 'background:#fff9eb;color:#d97706;border-color:#fcd34d;' : '' }}">
                                         {{ $post->is_pinned ? '📌 Pinned' : '📌' }}
                                     </button>
+                                </form>
+                                <form action="{{ route('posts.archive', $post) }}" method="POST" style="margin:0;">
+                                    @csrf
+                                    <button type="submit" class="action-pill" onclick="return confirm('Archive post ini?')">🗄️ Archive</button>
                                 </form>
                                 <form action="/posts/{{ $post->id }}" method="POST" style="margin:0; margin-left: auto;">
                                     @csrf @method('DELETE')<button type="submit" class="action-pill delete" onclick="return confirm('Delete post?')">🗑️ Delete</button>
@@ -586,7 +700,18 @@
                                                             <button type="button">➡️ Forward</button>
                                                             <button type="button">📋 Copy Text</button>
                                                             <button type="button">🔗 Copy Link Text</button>
-                                                            <button type="button" class="text-danger">🚫 Report Message</button>
+@if(!$isMyComment)
+                                                                <form action="{{ route('reports.comments.store', $comment) }}" method="POST" class="report-form">
+                                                                    @csrf
+                                                                    <select name="reason" required>
+                                                                        <option value="spam">Spam</option>
+                                                                        <option value="harassment">Harassment</option>
+                                                                        <option value="inappropriate">Inappropriate content</option>
+                                                                    </select>
+                                                                    <textarea name="details" rows="2" placeholder="Detail tambahan (opsional)"></textarea>
+                                                                    <button type="submit" onclick="return confirm('Kirim report komentar ini?')">🚫 Report Comment</button>
+                                                                </form>
+                                                            @endif
                                                         </div>
                                                     </div>
                                                 </div>
@@ -695,7 +820,18 @@
                                                                         <button type="button">➡️ Forward</button>
                                                                         <button type="button">📋 Copy Text</button>
                                                                         <button type="button">🔗 Copy Link Text</button>
-                                                                        <button type="button" class="text-danger">🚫 Report Message</button>
+@if(!$isMyReply)
+                                                                        <form action="{{ route('reports.comments.store', $reply) }}" method="POST" class="report-form">
+                                                                            @csrf
+                                                                            <select name="reason" required>
+                                                                                <option value="spam">Spam</option>
+                                                                                <option value="harassment">Harassment</option>
+                                                                                <option value="inappropriate">Inappropriate content</option>
+                                                                            </select>
+                                                                            <textarea name="details" rows="2" placeholder="Detail tambahan (opsional)"></textarea>
+                                                                            <button type="submit" onclick="return confirm('Kirim report reply ini?')">🚫 Report Reply</button>
+                                                                        </form>
+                                                                    @endif
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -749,27 +885,72 @@
             Followers
         </div>
         <ul class="modal-user-list">
-            @php $myFollowersList = Auth::user()->followers()->where('status', 'accepted')->with('follower')->get(); @endphp
-            @if($myFollowersList->isEmpty()) <li style="justify-content: center; color: gray;">No followers yet.</li>
+            @php 
+                $myFollowersList = Auth::user()->followers()->where('status', 'accepted')->with('follower')->get(); 
+                $closeFriendIds = \App\Models\CloseFriend::where('account_id', Auth::id())->pluck('friend_id')->toArray();
+            @endphp
+            
+            @if($myFollowersList->isEmpty()) 
+                <li style="justify-content: center; color: var(--text-muted); font-weight: 600; padding: 40px 0;">No followers yet.</li>
             @else
                 @foreach($myFollowersList as $f)
+                    @php 
+                        $isFollowingBack = in_array($f->follower->id, $myFollowingList);
+                        $isCF = in_array($f->follower->id, $closeFriendIds);
+                    @endphp
                     <li>
-                        <div style="display: flex; gap: 12px; align-items: center; width: 100%;">
-                            <a href="/accounts/{{ $f->follower->id }}" style="text-decoration: none;">
-                                <div class="sidebar-avatar" style="width: 44px; height: 44px; font-size: 16px; margin: 0; background: {{ getAvatarGradient($f->follower->id) }}; border:none;">
+                        <div style="display: flex; gap: 14px; align-items: center; width: 100%;">
+                            <a href="/accounts/{{ $f->follower->id }}" style="text-decoration: none; flex-shrink: 0;">
+                                <div class="sidebar-avatar" style="width: 48px; height: 48px; font-size: 18px; margin: 0; background: {{ getAvatarGradient($f->follower->id) }}; border:none;">
                                     {{ substr($f->follower->name, 0, 1) }}
                                 </div>
                             </a>
-                            <div style="flex: 1;">
-                                <a href="/accounts/{{ $f->follower->id }}" style="display: block; font-weight:bold; color:#0f1419; text-decoration:none;">{{ $f->follower->name }}</a>
-                                <div style="color: #536471; font-size: 0.9em;">@ {{ $f->follower->username }}</div>
+                            
+                            <div style="flex: 1; min-width: 0;">
+                                <a href="/accounts/{{ $f->follower->id }}" style="display: flex; align-items: center; gap: 5px; font-weight: 800; color: var(--text); text-decoration: none; font-size: 1.05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    {{ $f->follower->name }}
+                                    @if($isCF)
+                                        <span title="Close Friend" style="font-size: 0.85em;">🌟</span>
+                                    @endif
+                                </a>
+                                <div style="color: var(--text-muted); font-size: 0.95em;">@ {{ $f->follower->username }}</div>
                             </div>
                             
-                            @if(!in_array($f->follower->id, $myFollowingList))
-                                <button class="btn-follow-back">Follow Back</button>
-                            @else
-                                <button class="btn-message">Message</button>
-                            @endif
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                @if(!$isFollowingBack)
+                                    <form action="/follows" method="POST" style="margin: 0;">
+                                        @csrf <input type="hidden" name="following_id" value="{{ $f->follower->id }}">
+                                        <button type="submit" class="btn-follow-back" style="padding: 7px 18px; background: var(--text); color: var(--bg);">Follow Back</button>
+                                    </form>
+                                @else
+                                    <a href="/messages/{{ $f->follower->id }}" class="btn-message" style="text-decoration: none; padding: 7px 18px;">Message</a>
+                                @endif
+
+                                <div style="position: relative;">
+                                    <button onclick="toggleActionMenu(event, 'drop-flw-{{$f->follower->id}}')" style="background: none; border: none; font-size: 1.3em; cursor: pointer; color: var(--text-muted); padding: 5px; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='none'">⋮</button>
+                                    
+                                    <div id="drop-flw-{{$f->follower->id}}" class="action-menu-dropdown action-menu-popup" style="right: 0; top: 40px; min-width: 240px;">
+                                        @if($isFollowingBack)
+                                            @if($isCF)
+                                                <form action="{{ route('close-friends.destroy', $f->follower->id) }}" method="POST" style="margin:0;">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="text-danger">✕ Hapus dari Close Friends</button>
+                                                </form>
+                                            @else
+                                                <form action="{{ route('close-friends.store', $f->follower->id) }}" method="POST" style="margin:0;">
+                                                    @csrf
+                                                    <button type="submit" style="color: #134e5e; font-weight: 700;">🌟 Tambah ke Close Friends</button>
+                                                </form>
+                                            @endif
+                                            <div style="height: 1px; background: var(--border); margin: 5px 0;"></div>
+                                        @else
+                                            <div style="padding: 12px 20px; font-size: 0.85em; color: var(--text-muted);">Follow akun ini untuk menambahkannya ke Close Friends.</div>
+                                            <div style="height: 1px; background: var(--border); margin: 5px 0;"></div>
+                                        @endif
+                                        <button class="text-danger">🚫 Remove this follower</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </li>
                 @endforeach
@@ -785,22 +966,61 @@
             Following
         </div>
         <ul class="modal-user-list">
-            @php $myFollowingData = Auth::user()->following()->where('status', 'accepted')->with('following')->get(); @endphp
-            @if($myFollowingData->isEmpty()) <li style="justify-content: center; color: gray;">Not following anyone yet.</li>
+            @php 
+                $myFollowingData = Auth::user()->following()->where('status', 'accepted')->with('following')->get(); 
+            @endphp
+            
+            @if($myFollowingData->isEmpty()) 
+                <li style="justify-content: center; color: var(--text-muted); font-weight: 600; padding: 40px 0;">Not following anyone yet.</li>
             @else
                 @foreach($myFollowingData as $g)
+                    @php 
+                        $isCF = in_array($g->following->id, $closeFriendIds);
+                    @endphp
                     <li>
-                        <div style="display: flex; gap: 12px; align-items: center; width: 100%;">
-                            <a href="/accounts/{{ $g->following->id }}" style="text-decoration: none;">
-                                <div class="sidebar-avatar" style="width: 44px; height: 44px; font-size: 16px; margin: 0; background: {{ getAvatarGradient($g->following->id) }}; border:none;">
+                        <div style="display: flex; gap: 14px; align-items: center; width: 100%;">
+                            <a href="/accounts/{{ $g->following->id }}" style="text-decoration: none; flex-shrink: 0;">
+                                <div class="sidebar-avatar" style="width: 48px; height: 48px; font-size: 18px; margin: 0; background: {{ getAvatarGradient($g->following->id) }}; border:none;">
                                     {{ substr($g->following->name, 0, 1) }}
                                 </div>
                             </a>
-                            <div style="flex: 1;">
-                                <a href="/accounts/{{ $g->following->id }}" style="display: block; font-weight:bold; color:#0f1419; text-decoration:none;">{{ $g->following->name }}</a>
-                                <div style="color: #536471; font-size: 0.9em;">@ {{ $g->following->username }}</div>
+                            
+                            <div style="flex: 1; min-width: 0;">
+                                <a href="/accounts/{{ $g->following->id }}" style="display: flex; align-items: center; gap: 5px; font-weight: 800; color: var(--text); text-decoration: none; font-size: 1.05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    {{ $g->following->name }}
+                                    @if($isCF)
+                                        <span title="Close Friend" style="font-size: 0.85em;">🌟</span>
+                                    @endif
+                                </a>
+                                <div style="color: var(--text-muted); font-size: 0.95em;">@ {{ $g->following->username }}</div>
                             </div>
-                            <button class="btn-message">Message</button>
+                            
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <a href="/messages/{{ $g->following->id }}" class="btn-message" style="text-decoration: none; padding: 7px 18px;">Message</a>
+                                
+                                <div style="position: relative;">
+                                    <button onclick="toggleActionMenu(event, 'drop-fwing-{{$g->following->id}}')" style="background: none; border: none; font-size: 1.3em; cursor: pointer; color: var(--text-muted); padding: 5px; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='none'">⋮</button>
+                                    
+                                    <div id="drop-fwing-{{$g->following->id}}" class="action-menu-dropdown action-menu-popup" style="right: 0; top: 40px; min-width: 240px;">
+                                        @if($isCF)
+                                            <form action="{{ route('close-friends.destroy', $g->following->id) }}" method="POST" style="margin:0;">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="text-danger">✕ Hapus dari Close Friends</button>
+                                            </form>
+                                        @else
+                                            <form action="{{ route('close-friends.store', $g->following->id) }}" method="POST" style="margin:0;">
+                                                @csrf
+                                                <button type="submit" style="color: #134e5e; font-weight: 700;">🌟 Tambah ke Close Friends</button>
+                                            </form>
+                                        @endif
+                                        <div style="height: 1px; background: var(--border); margin: 5px 0;"></div>
+                                        <form action="/follows/{{ $g->following->id }}" method="POST" style="margin:0;">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="text-danger">🚫 Unfollow <span style="font-weight: 800;">@ {{ $g->following->username }}</span></button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </li>
                 @endforeach
@@ -973,6 +1193,11 @@
             handleMention(this);
         });
     });
+
+    function togglePollBox() {
+        const box = document.getElementById('pollComposeBox');
+        box.style.display = (box.style.display === 'block') ? 'none' : 'block';
+    }
 
     // ── Media Preview ──────────────────────────────────────
     function previewMedia(input) {

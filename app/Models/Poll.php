@@ -9,15 +9,11 @@ class Poll extends Model
     protected $fillable = [
         'post_id',
         'question',
-        'allow_multiple',
-        'ends_at',
-        'is_active',
+        'expires_at',
     ];
 
     protected $casts = [
-        'allow_multiple' => 'boolean',
-        'is_active' => 'boolean',
-        'ends_at' => 'datetime',
+        'expires_at' => 'datetime',
     ];
 
     public function post()
@@ -27,16 +23,39 @@ class Poll extends Model
 
     public function options()
     {
-        return $this->hasMany(PollOption::class)->orderBy('order');
+        return $this->hasMany(PollOption::class);
     }
 
-    public function votes()
+    public function isExpired(): bool
     {
-        return $this->hasMany(PollVote::class);
+        return $this->expires_at !== null && now()->greaterThan($this->expires_at);
     }
 
-    public function isClosed(): bool
+    public function hasVoted(?int $accountId): bool
     {
-        return !$this->is_active || ($this->ends_at && now()->greaterThanOrEqualTo($this->ends_at));
+        if (!$accountId) {
+            return false;
+        }
+
+        return PollVote::where('account_id', $accountId)
+            ->whereIn('poll_option_id', $this->options->pluck('id'))
+            ->exists();
+    }
+
+    public function userVote(?int $accountId): ?PollVote
+    {
+        if (!$accountId) {
+            return null;
+        }
+
+        return PollVote::where('account_id', $accountId)
+            ->whereIn('poll_option_id', $this->options->pluck('id'))
+            ->first();
+    }
+
+    public function totalVotes(): int
+    {
+        return $this->options->sum(fn ($option) => $option->votes->count());
     }
 }
+

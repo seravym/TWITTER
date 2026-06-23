@@ -9,6 +9,9 @@ use App\Models\PollOption;
 use App\Models\Setting;
 use App\Models\Hashtag;
 use App\Models\CloseFriend;
+use App\Models\Notification;
+use App\Models\Account;
+use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -24,85 +27,93 @@ class PostController extends Controller
             ? Auth::user()->following()->where('status', 'accepted')->pluck('following_id')->toArray()
             : [];
 
-        // Daftar ID yang merupakan close friend saya (untuk filter post close_friend)
         $myCloseFriendIds = Auth::check()
             ? CloseFriend::where('account_id', $currentUserId)->pluck('friend_id')->toArray()
             : [];
 
-        // Ambil daftar akun yang di-block oleh user ini
         $mySetting   = Setting::where('account_id', $currentUserId)->first();
         $blockedByMe = $mySetting ? ($mySetting->blocked_accounts ?? []) : [];
 
-        // Ambil daftar akun yang mem-block user ini
         $blockingMe = Setting::whereJsonContains('blocked_accounts', $currentUserId)
-            ->pluck('account_id')->toArray();
+            ->pluck('account_id')
+            ->toArray();
 
         $blockedIds = array_unique(array_merge($blockedByMe, $blockingMe));
 
+        $baseQuery = Post::with([
+                'account',
+                'likes',
+                'comments.account',
+                'comments.replies.account',
+                'hashtags',
+                'bookmarks',
+                'reposts',
+                'poll.options.votes',
+            ])
+            ->whereNull('archived_at')
+            ->whereNotIn('account_id', $blockedIds);
+
         if ($feedType === 'following' && Auth::check()) {
-            $posts = Post::whereIn('account_id', $acceptedFollowingIds)
-                         ->orWhere('account_id', $currentUserId)
-                         ->whereNotIn('account_id', $blockedIds)
-                         ->with(['account', 'likes', 'comments', 'hashtags', 'bookmarks', 'poll.options.votes'])
-                         ->latest()
-                         ->get()
-                         ->filter(function ($post) use ($currentUserId, $myCloseFriendIds) {
-                             if ($post->visibility === 'close_friend') {
-                                 return $post->account_id === $currentUserId
-                                     || in_array($post->account_id, $myCloseFriendIds);
-                             }
-                             return true;
-                         });
+            $posts = $baseQuery
+                ->where(function ($query) use ($acceptedFollowingIds, $currentUserId) {
+                    $query->whereIn('account_id', $acceptedFollowingIds)
+                          ->orWhere('account_id', $currentUserId);
+                })
+                ->latest()
+                ->get()
+                ->filter(function ($post) use ($currentUserId, $myCloseFriendIds) {
+                    if ($post->visibility === 'close_friend') {
+                        return $post->account_id === $currentUserId
+                            || in_array($post->account_id, $myCloseFriendIds);
+                    }
+                    return true;
+                });
         } else {
             $privateAccountIds = Setting::where('isPrivateAccount', true)->pluck('account_id')->toArray();
 
-            $posts = Post::with(['account', 'likes', 'comments', 'hashtags', 'bookmarks', 'poll.options.votes'])
-                         ->whereNotIn('account_id', $blockedIds)
-                         ->where(function ($query) use ($currentUserId, $acceptedFollowingIds, $privateAccountIds) {
-                             $query->whereNotIn('account_id', $privateAccountIds)
-                                   ->orWhere('account_id', $currentUserId)
-                                   ->orWhereIn('account_id', $acceptedFollowingIds);
-                         })
-                         ->latest()
-                         ->get()
-                         ->filter(function ($post) use ($currentUserId, $myCloseFriendIds) {
-                             if ($post->visibility === 'close_friend') {
-                                 return $post->account_id === $currentUserId
-                                     || in_array($post->account_id, $myCloseFriendIds);
-                             }
-                             return true;
-                         });
+            $posts = $baseQuery
+                ->where(function ($query) use ($currentUserId, $acceptedFollowingIds, $privateAccountIds) {
+                    $query->whereNotIn('account_id', $privateAccountIds)
+                          ->orWhere('account_id', $currentUserId)
+                          ->orWhereIn('account_id', $acceptedFollowingIds);
+                })
+                ->latest()
+                ->get()
+                ->filter(function ($post) use ($currentUserId, $myCloseFriendIds) {
+                    if ($post->visibility === 'close_friend') {
+                        return $post->account_id === $currentUserId
+                            || in_array($post->account_id, $myCloseFriendIds);
+                    }
+                    return true;
+                });
         }
 
-        return view('welcome', compact('posts', 'feedType'));
+        $articles = Article::with('account')
+            ->where('status', 'published')
+            ->whereNotIn('account_id', $blockedIds)
+            ->latest('published_at')
+            ->take(5)
+            ->get();
+
+        return view('welcome', compact('posts', 'feedType', 'articles'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'content'        => 'required|string|max:350',
-            'media'          => 'nullable|file|mimes:jpg,jpeg,png,gif,mp4,mov,webm|max:20480',
-            'visibility'     => 'nullable|in:public,close_friend',
-            'poll_question'  => 'nullable|string|max:180',
-            'poll_options'   => 'nullable|array',
-            'poll_options.*' => 'nullable|string|max:80',
+            'content'          => 'required|string|max:350',
+            'media'            => 'nullable|file|mimes:jpg,jpeg,png,gif,mp4,mov,webm|max:20480',
+            'visibility'       => 'nullable|in:public,close_friend',
+            'poll_question'    => 'nullable|string|max:180',
+            'poll_options'     => 'nullable|array|max:4',
+            'poll_options.*'   => 'nullable|string|max:100',
+            'poll_duration'    => 'nullable|integer|in:1,3,7',
         ]);
 
-        $pollQuestion = trim((string) $request->input('poll_question', ''));
-        $pollOptions = collect($request->input('poll_options', []))
-            ->map(fn ($value) => trim((string) $value))
-            ->filter(fn ($value) => $value !== '')
-            ->values();
 
-        if ($pollQuestion !== '' && $pollOptions->count() < 2) {
-            return back()
-                ->withErrors(['poll_options' => 'Polling harus memiliki minimal 2 opsi.'])
-                ->withInput();
-        }
-
-        // Handle upload media
         $mediaPath = null;
         $mediaType = null;
+
         if ($request->hasFile('media') && $request->file('media')->isValid()) {
             $file      = $request->file('media');
             $mime      = $file->getMimeType();
@@ -118,22 +129,26 @@ class PostController extends Controller
             'visibility' => $request->input('visibility', 'public'),
         ]);
 
-        if ($pollQuestion !== '') {
-            $poll = Poll::create([
-                'post_id' => $post->id,
-                'question' => $pollQuestion,
+        $pollOptions = collect($request->input('poll_options', []))
+            ->map(fn ($option) => trim((string) $option))
+            ->filter()
+            ->values();
+
+        if ($pollOptions->count() >= 2) {
+            $poll = $post->poll()->create([
+                'question'   => $request->filled('poll_question') ? $request->poll_question : $request->content,
+                'expires_at' => now()->addDays((int) $request->input('poll_duration', 7)),
             ]);
 
-            foreach ($pollOptions as $index => $optionText) {
-                PollOption::create([
-                    'poll_id' => $poll->id,
-                    'text'    => $optionText,
-                    'order'   => $index + 1,
+            $pollOptions->each(function ($option) use ($poll) {
+                $poll->options()->create([
+                    'option_text' => $option,
                 ]);
-            }
+            });
         }
 
         $this->syncHashtags($post, $request->content);
+        $this->notifyMentions($post, $request->content);
 
         return redirect()->route('posts.index')->with('success', 'Post berhasil dibuat!');
     }
@@ -159,14 +174,14 @@ class PostController extends Controller
             'visibility' => 'nullable|in:public,close_friend',
         ]);
 
-        // Handle media baru jika di-upload ulang
         $mediaPath = $post->media_path;
         $mediaType = $post->media_type;
+
         if ($request->hasFile('media') && $request->file('media')->isValid()) {
-            // Hapus file lama jika ada
             if ($mediaPath) {
                 Storage::disk('public')->delete($mediaPath);
             }
+
             $file      = $request->file('media');
             $mime      = $file->getMimeType();
             $mediaType = str_starts_with($mime, 'video/') ? 'video' : 'image';
@@ -181,6 +196,7 @@ class PostController extends Controller
         ]);
 
         $this->syncHashtags($post, $request->content);
+        $this->notifyMentions($post, $request->content);
 
         return redirect()->route('posts.index')->with('success', 'Post berhasil diperbarui!');
     }
@@ -191,12 +207,10 @@ class PostController extends Controller
             abort(403, 'Anda tidak berhak menghapus postingan ini.');
         }
 
-        // Hapus media dari storage
         if ($post->media_path) {
             Storage::disk('public')->delete($post->media_path);
         }
 
-        // Kurangi post_count hashtag sebelum dihapus
         foreach ($post->hashtags as $hashtag) {
             $hashtag->decrementPostCount();
         }
@@ -205,32 +219,23 @@ class PostController extends Controller
         return redirect()->route('posts.index')->with('success', 'Post berhasil dihapus!');
     }
 
-    /**
-     * Toggle pin/unpin post di profil.
-     * Route: POST /posts/{post}/pin
-     */
     public function pin(Post $post)
     {
         if (Auth::id() !== $post->account_id) {
             abort(403, 'Anda tidak berhak menyematkan postingan ini.');
         }
 
-        // Jika sudah pin, unpin dulu semua post milik user ini
         if ($post->is_pinned) {
             $post->update(['is_pinned' => false]);
             return back()->with('success', 'Post tidak lagi disematkan.');
         }
 
-        // Unpin semua post milik user, lalu pin yang dipilih
         Post::where('account_id', Auth::id())->update(['is_pinned' => false]);
         $post->update(['is_pinned' => true]);
 
         return back()->with('success', 'Post berhasil disematkan ke profil! 📌');
     }
 
-    /*
-    | LIKE / UNLIKE TOGGLE
-    */
     public function like(Post $post)
     {
         $accountId = Auth::id();
@@ -246,14 +251,18 @@ class PostController extends Controller
                 'post_id'    => $post->id,
             ]);
         }
+
         return back();
     }
 
     public function show($id)
     {
-        $post = Post::with(['account', 'likes', 'comments', 'hashtags', 'bookmarks'])->findOrFail($id);
+        $post = Post::with(['account', 'likes', 'comments.account', 'comments.replies.account', 'hashtags', 'bookmarks', 'poll.options.votes'])->findOrFail($id);
 
-        // Cek visibilitas
+        if ($post->archived_at !== null && $post->account_id !== Auth::id()) {
+            abort(403, 'Post ini sudah diarsipkan.');
+        }
+
         if (!$post->isVisibleTo(Auth::id())) {
             abort(403, 'Post ini hanya untuk close friends.');
         }
@@ -261,22 +270,134 @@ class PostController extends Controller
         return view('posts.show', compact('post'));
     }
 
-    /**
-     * Parse hashtag (#kata) dari konten, buat atau update record di tabel hashtags,
-     * dan sync pivot hashtag_post.
-     */
+    public function archiveIndex()
+    {
+        $posts = Post::with([
+                'account',
+                'likes',
+                'comments.account',
+                'comments.replies.account',
+                'hashtags',
+                'bookmarks',
+                'reposts',
+                'poll.options.votes',
+            ])
+            ->where('account_id', Auth::id())
+            ->whereNotNull('archived_at')
+            ->latest('archived_at')
+            ->get();
+
+        return view('posts.archive', compact('posts'));
+    }
+
+    public function archive(Post $post)
+    {
+        if (Auth::id() !== $post->account_id) {
+            abort(403, 'Anda tidak berhak mengarsipkan postingan ini.');
+        }
+
+        $post->update([
+            'archived_at' => now(),
+            'is_pinned' => false,
+        ]);
+
+        return back()->with('success', 'Post berhasil dimasukkan ke archive.');
+    }
+
+    public function restore(Post $post)
+    {
+        if (Auth::id() !== $post->account_id) {
+            abort(403, 'Anda tidak berhak mengembalikan postingan ini.');
+        }
+
+        $post->update(['archived_at' => null]);
+
+        return back()->with('success', 'Post berhasil dikembalikan ke timeline.');
+    }
+
+    public function downloadMedia(Post $post)
+    {
+        if (!$post->media_path) {
+            abort(404, 'Media tidak ditemukan.');
+        }
+
+        if ($post->archived_at !== null && $post->account_id !== Auth::id()) {
+            abort(403, 'Media dari post archive hanya bisa diunduh oleh pemilik post.');
+        }
+
+        if (!$post->isVisibleTo(Auth::id())) {
+            abort(403, 'Kamu tidak punya akses ke media ini.');
+        }
+
+        if (!Storage::disk('public')->exists($post->media_path)) {
+            abort(404, 'File media tidak ditemukan di storage.');
+        }
+
+        $extension = pathinfo($post->media_path, PATHINFO_EXTENSION);
+        $filename = 'post-' . $post->id . '-media' . ($extension ? '.' . $extension : '');
+
+        return response()->download(Storage::disk('public')->path($post->media_path), $filename);
+    }
+
     private function syncHashtags(Post $post, string $content): void
     {
-        preg_match_all('/#(\w+)/u', $content, $matches);
-        $tagNames = array_unique(array_map('strtolower', $matches[1]));
+        preg_match_all('/#([A-Za-z0-9_]+)/', $content, $matches);
+        $names = collect($matches[1] ?? [])
+            ->map(fn ($name) => strtolower($name))
+            ->unique()
+            ->values();
 
         $hashtagIds = [];
-        foreach ($tagNames as $name) {
-            $hashtag = Hashtag::firstOrCreate(['name' => $name]);
-            $hashtag->incrementPostCount();
+
+        foreach ($names as $name) {
+            $hashtag = Hashtag::firstOrCreate(
+                ['name' => $name],
+                ['post_count' => 0]
+            );
+
             $hashtagIds[] = $hashtag->id;
         }
 
+        $oldHashtags = $post->hashtags()->pluck('hashtags.id')->toArray();
         $post->hashtags()->sync($hashtagIds);
+
+        foreach (array_diff($hashtagIds, $oldHashtags) as $id) {
+            Hashtag::find($id)?->incrementPostCount();
+        }
+
+        foreach (array_diff($oldHashtags, $hashtagIds) as $id) {
+            Hashtag::find($id)?->decrementPostCount();
+        }
+    }
+
+    private function notifyMentions(Post $post, string $content): void
+    {
+        preg_match_all('/@([A-Za-z0-9_]+)/', $content, $matches);
+
+        $usernames = collect($matches[1] ?? [])
+            ->map(fn ($username) => strtolower($username))
+            ->unique()
+            ->values();
+
+        if ($usernames->isEmpty()) {
+            return;
+        }
+
+        $mentionedAccounts = Account::whereIn('username', $usernames)->get();
+
+        foreach ($mentionedAccounts as $account) {
+            if ($account->id === Auth::id()) {
+                continue;
+            }
+
+            Notification::create([
+                'account_id' => $account->id,
+                'sender_id' => Auth::id(),
+                'type' => 'mention',
+                'message' => '@' . Auth::user()->username . ' mentioned you in a post.',
+                'reference_id' => $post->id,
+                'is_read' => false,
+            ]);
+        }
     }
 }
