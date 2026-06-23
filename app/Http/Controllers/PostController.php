@@ -81,6 +81,7 @@ class PostController extends Controller
             'content'    => 'required|string|max:350',
             'media'      => 'nullable|file|mimes:jpg,jpeg,png,gif,mp4,mov,webm|max:20480',
             'visibility' => 'nullable|in:public,close_friend',
+            'quote_post_id' => 'nullable|exists:posts,id',
         ]);
 
         // Handle upload media
@@ -125,8 +126,8 @@ class PostController extends Controller
             'media_path' => $mediaPath,
             'media_type' => $mediaType,
             'visibility' => $request->input('visibility', 'public'),
-            'account_id' => auth()->id(),
             'body' => $request->body,
+            'quote_post_id' => $request->input('quote_post_id'),
         ]);
 
 
@@ -245,6 +246,11 @@ class PostController extends Controller
             ]);
         }
         return back();
+    }
+
+    public function quote(Post $post)
+    {
+        return view('posts.quote', compact('post'));
     }
 
     public function show($id)

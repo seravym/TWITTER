@@ -61,6 +61,24 @@
     <h1>{{ $post->content }}</h1>
 
     <p>{{ $post->content }}</p>
+    @if($post->quotedPost)
+
+    <div style="
+        border:1px solid #ccc;
+        padding:10px;
+        margin-top:10px;
+        border-radius:8px;
+    ">
+        <strong>
+            {{ $post->quotedPost->account->name }}
+        </strong>
+
+        <br>
+
+        {{ $post->quotedPost->content }}
+    </div>
+
+    @endif
 
     {{-- LIKE --}}
     <form action="{{ route('posts.like', $post) }}" method="POST" style="display:inline;">
@@ -80,6 +98,10 @@
             🔁 {{ $post->reposts->count() }}
         </button>
     </form>
+
+    <a href="{{ route('posts.quote', $post) }}">
+    💬 Quote
+    </a>
 
     <br><br>
 
