@@ -81,17 +81,9 @@ class Account extends Authenticatable
 
     public function isMutual($accountId)
     {
-        $iFollowHim = $this->following()
-            ->where('following_id', $accountId)
-            ->where('status', 'accepted')
-            ->exists();
-
-        $heFollowsMe = $this->followers()
-            ->where('follower_id', $accountId)
-            ->where('status', 'accepted')
-            ->exists();
-
-        return $iFollowHim && $heFollowsMe;
+    $iFollowHim = $this->following()->where('following_id', $accountId)->where('status', 'accepted')->exists();
+    $heFollowsMe = $this->followers()->where('follower_id', $accountId)->where('status', 'accepted')->exists();
+    return $iFollowHim && $heFollowsMe;
     }
 
     /**
@@ -139,11 +131,6 @@ class Account extends Authenticatable
         return $this->hasMany(Bookmark::class, 'account_id');
     }
 
-    public function articles()
-    {
-        return $this->hasMany(Article::class, 'account_id');
-    }
-
     /**
      * Setting akun (one-to-one)
      */
@@ -178,10 +165,5 @@ class Account extends Authenticatable
     public function isCloseFriendOf(int $friendId): bool
     {
         return $this->closeFriends()->where('friend_id', $friendId)->exists();
-    }
-
-    public function reports()
-    {
-        return $this->morphMany(Report::class, 'reportable');
     }
 }
