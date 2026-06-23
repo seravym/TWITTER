@@ -11,9 +11,12 @@ return new class extends Migration
         Schema::create('polls', function (Blueprint $table) {
             $table->id();
             $table->foreignId('post_id')->constrained()->cascadeOnDelete();
+
+            $table->string('question')->nullable();
             $table->timestamp('expires_at')->nullable();
+
             $table->timestamps();
-        });
+        });;
     }
 
     public function down(): void
