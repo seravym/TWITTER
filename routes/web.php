@@ -15,6 +15,7 @@ use App\Http\Controllers\HashtagController;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\CloseFriendController;
 use App\Http\Controllers\MenfessController;
+use App\Http\Controllers\RepostController;
 
 Route::get('/', [PostController::class, 'index'])->middleware('auth');
 
@@ -50,7 +51,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('posts', PostController::class);
     Route::post('/posts/{post}/like', [LikeController::class, 'toggle'])->name('posts.like');
     Route::post('/posts/{post}/pin', [PostController::class, 'pin'])->name('posts.pin');
-
+    Route::post('/posts/{post}/repost', [RepostController::class, 'toggle'])->name('posts.repost');
     // --- Fitur Komentar ---
     Route::get('/comments', [CommentController::class, 'index']);
     Route::post('/comments', [CommentController::class, 'store']);

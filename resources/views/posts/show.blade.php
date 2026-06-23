@@ -72,7 +72,14 @@
         </button>
     </form>
 
-    {{-- nanti repost kita taruh di sini --}}
+    <form action="{{ route('posts.repost', $post) }}" method="POST">
+        @csrf
+
+        <button type="submit"
+            style="color: {{ $post->isRepostedBy(auth()->id()) ? 'green' : 'black' }}">
+            🔁 {{ $post->reposts->count() }}
+        </button>
+    </form>
 
     <br><br>
 
