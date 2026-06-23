@@ -128,7 +128,8 @@
         $myFollowingIdsList = Auth::user()->following()->where('status', 'accepted')->pluck('following_id')->toArray();
         $myPendingIdsList = Auth::user()->following()->where('status', 'pending')->pluck('following_id')->toArray();
         $followersOfMeList = Auth::user()->followers()->where('status', 'accepted')->pluck('follower_id')->toArray();
-        
+        $closeFriendIds = \App\Models\CloseFriend::where('account_id', Auth::id())->pluck('friend_id')->toArray();
+
         if(!$isMyProfile) {
             $amFollowing = in_array($account->id, $myFollowingIdsList);
             $isPending = in_array($account->id, $myPendingIdsList);
@@ -414,7 +415,12 @@
                                 </div>
                             </a>
                             <div style="flex: 1;">
-                                <a href="/accounts/{{ $uid }}" style="display: block;">{{ $f->follower->name }}</a>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <a href="/accounts/{{ $uid }}" style="display: block; font-weight: bold; color: #0f1419; text-decoration: none;">{{ $f->follower->name }}</a>
+                                    @if(in_array($uid, $closeFriendIds))
+                                        <span style="background: rgba(19, 78, 94, 0.1); color: #134e5e; font-size: 0.7em; padding: 2px 8px; border-radius: 12px; font-weight: 800;" title="Close Friend">🌟 CF</span>
+                                    @endif
+                                </div>
                                 <div style="color: #536471; font-size: 0.9em; line-height: 1.2; margin-top: 2px;">@ {{ $f->follower->username }}</div>
                             </div>
                             
@@ -441,6 +447,21 @@
                                         <div style="position: relative; display: inline-block;">
                                             <button onclick="toggleActionMenu(event, 'drop-f-{{$uid}}')" style="background: none; border: none; color: #536471; font-weight: bold; font-size: 1.4em; padding: 0 5px; cursor: pointer; line-height: 1;">⋮</button>
                                             <div id="drop-f-{{$uid}}" class="action-menu-dropdown action-menu-popup">
+                                                @if(in_array($uid, $myFollowingIdsList))
+                                                    @if(in_array($uid, $closeFriendIds))
+                                                        <form action="{{ route('close-friends.destroy', $uid) }}" method="POST" style="margin:0;">
+                                                            @csrf @method('DELETE')
+                                                            <button type="submit" style="width: 100%; text-align: left; padding: 14px 20px; border: none; background: none; color: #f4212e; font-weight: 600; cursor: pointer; font-size: 0.95em;">✕ Hapus Close Friends</button>
+                                                        </form>
+                                                    @else
+                                                        <form action="{{ route('close-friends.store', $uid) }}" method="POST" style="margin:0;">
+                                                            @csrf
+                                                            <button type="submit" style="width: 100%; text-align: left; padding: 14px 20px; border: none; background: none; color: #134e5e; font-weight: 700; cursor: pointer; font-size: 0.95em;">🌟 Tambah Close Friends</button>
+                                                        </form>
+                                                    @endif
+                                                    <div style="height: 1px; background: #eff3f4; margin: 0;"></div>
+                                                @endif
+
                                                 <a href="/messages/{{ $uid }}">💬 Direct Message</a>
                                                 <a href="#" class="text-danger">🚫 Block / Report</a>
                                             </div>
@@ -496,7 +517,13 @@
                                 </div>
                             </a>
                             <div style="flex: 1;">
-                                <a href="/accounts/{{ $uid }}" style="display: block;">{{ $g->following->name }}</a>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <a href="/accounts/{{ $uid }}" style="display: block; font-weight: bold; color: #0f1419; text-decoration: none;">{{ $g->following->name }}</a>
+                                    <!-- Badge Close Friend -->
+                                    @if(in_array($uid, $closeFriendIds))
+                                        <span style="background: rgba(19, 78, 94, 0.1); color: #134e5e; font-size: 0.7em; padding: 2px 8px; border-radius: 12px; font-weight: 800;" title="Close Friend">🌟 CF</span>
+                                    @endif
+                                </div>
                                 <div style="color: #536471; font-size: 0.9em; line-height: 1.2; margin-top: 2px;">@ {{ $g->following->username }}</div>
                             </div>
 
@@ -523,6 +550,19 @@
                                         <div style="position: relative; display: inline-block;">
                                             <button onclick="toggleActionMenu(event, 'drop-g-{{$uid}}')" style="background: none; border: none; color: #536471; font-weight: bold; font-size: 1.4em; padding: 0 5px; cursor: pointer; line-height: 1;">⋮</button>
                                             <div id="drop-g-{{$uid}}" class="action-menu-dropdown action-menu-popup">
+                                                @if(in_array($uid, $closeFriendIds))
+                                                    <form action="{{ route('close-friends.destroy', $uid) }}" method="POST" style="margin:0;">
+                                                        @csrf @method('DELETE')
+                                                        <button type="submit" style="width: 100%; text-align: left; padding: 14px 20px; border: none; background: none; color: #f4212e; font-weight: 600; cursor: pointer; font-size: 0.95em;">✕ Hapus Close Friends</button>
+                                                    </form>
+                                                @else
+                                                    <form action="{{ route('close-friends.store', $uid) }}" method="POST" style="margin:0;">
+                                                        @csrf
+                                                        <button type="submit" style="width: 100%; text-align: left; padding: 14px 20px; border: none; background: none; color: #134e5e; font-weight: 700; cursor: pointer; font-size: 0.95em;">🌟 Tambah Close Friends</button>
+                                                    </form>
+                                                @endif
+                                                <div style="height: 1px; background: #eff3f4; margin: 0;"></div>
+
                                                 <a href="/messages/{{ $uid }}">💬 Direct Message</a>
                                                 <a href="#" class="text-danger">🚫 Block / Report</a>
                                             </div>
