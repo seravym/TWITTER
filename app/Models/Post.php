@@ -121,4 +121,14 @@ class Post extends Model
             ->where('friend_id', $viewerId)
             ->exists();
     }
+
+    public function quotedPost()
+    {
+        return $this->belongsTo(Post::class, 'quote_post_id');
+    }
+
+    public function quotes()
+    {
+        return $this->hasMany(Post::class, 'quote_post_id');
+    }
 }
