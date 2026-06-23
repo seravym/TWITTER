@@ -105,6 +105,11 @@ class Account extends Authenticatable
         return $this->hasMany(Like::class, 'account_id');
     }
 
+    public function reposts()
+    {
+        return $this->hasMany(Repost::class, 'account_id');
+    }
+
     public function getActiveStatusAttribute()
     {
         if ($this->status_text && $this->status_expires_at && now()->lessThan($this->status_expires_at)) {

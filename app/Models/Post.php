@@ -8,6 +8,7 @@ use App\Models\Like;
 use App\Models\Hashtag;
 use App\Models\Bookmark;
 use App\Models\CloseFriend;
+use App\Models\Repost;
 
 class Post extends Model
 {
@@ -37,6 +38,18 @@ class Post extends Model
     public function isLikedBy($accountId)
     {
         return $this->likes()->where('account_id', $accountId)->exists();
+    }
+
+    public function reposts()
+    {
+        return $this->hasMany(Repost::class);
+    }
+
+    public function isRepostedBy($accountId)
+    {
+        return $this->reposts()
+            ->where('account_id', $accountId)
+            ->exists();
     }
 
     public function comments()
