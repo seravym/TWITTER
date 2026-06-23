@@ -14,6 +14,7 @@ use App\Http\Controllers\StoryController;
 use App\Http\Controllers\HashtagController;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\CloseFriendController;
+use App\Http\Controllers\MenfessController;
 
 Route::get('/', [PostController::class, 'index'])->middleware('auth');
 
@@ -99,4 +100,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/close-friends', [CloseFriendController::class, 'index'])->name('close-friends.index');
     Route::post('/close-friends/{friendId}', [CloseFriendController::class, 'store'])->name('close-friends.store');
     Route::delete('/close-friends/{friendId}', [CloseFriendController::class, 'destroy'])->name('close-friends.destroy');
+
+    // --- Fitur Menfess ---
+    Route::get('/menfess/create', [MenfessController::class, 'create'])->name('menfess.create');
+    Route::post('/menfess', [MenfessController::class, 'store'])->name('menfess.store');
+
+    Route::get('/menfess', [MenfessController::class, 'index'])->name('menfess.index');
+    Route::post('/menfess/{id}/approve', [MenfessController::class, 'approve'])->name('menfess.approve');
 });
