@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="{{ (Auth::check() && Auth::user()->setting && Auth::user()->setting->theme === 'dark') ? 'dark-mode' : '' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
+        :root { --bg: #f7f9fa; --card-bg: #ffffff; --text: #0f1419; --text-muted: #536471; --border: #eff3f4; }
+        html.dark-mode { --bg: #15202b; --card-bg: #1e2732; --text: #f7f9fa; --text-muted: #8899a6; --border: #2f3b47; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Inter', -apple-system, sans-serif;
-            background: #f7f9fa; color: #0f1419; min-height: 100vh;
+            background: var(--bg); color: var(--text); min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
         }
 
         .page-header {
@@ -34,7 +37,7 @@
         .feed-container { max-width: 600px; margin: -30px auto 0; padding: 0 15px 60px; }
 
         .post-card {
-            background: white; border-radius: 20px; border: 1px solid #eff3f4;
+            background: var(--card-bg); border-radius: 20px; border: 1px solid var(--border);
             margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             transition: all 0.25s ease; overflow: hidden;
         }
@@ -60,7 +63,7 @@
         .post-meta .sub { color: #536471; font-size: 0.88em; margin-top: 2px; }
 
         .post-content {
-            font-size: 1.08em; line-height: 1.65; color: #0f1419; margin-bottom: 15px;
+            font-size: 1.08em; line-height: 1.65; color: var(--text); margin-bottom: 15px;
         }
         .post-content .tag-link { color: #8b5cf6; font-weight: 700; text-decoration: none; }
         .post-content .tag-link:hover { text-decoration: underline; }
@@ -73,9 +76,9 @@
         }
         .hashtag-chip:hover { background: rgba(139,92,246,0.2); }
 
-        .post-actions { display: flex; gap: 10px; border-top: 1px solid #eff3f4; padding-top: 14px; flex-wrap: wrap; }
+        .post-actions { display: flex; gap: 10px; border-top: 1px solid var(--border); padding-top: 14px; flex-wrap: wrap; }
         .action-btn {
-            background: #f7f9fa; border: 1px solid #eff3f4;
+            background: var(--bg); border: 1px solid var(--border);
             padding: 7px 16px; border-radius: 20px;
             font-size: 0.88em; font-weight: 600; cursor: pointer;
             display: flex; align-items: center; gap: 6px; transition: 0.2s; color: #536471;

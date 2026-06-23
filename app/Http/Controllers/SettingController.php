@@ -54,7 +54,7 @@ class SettingController extends Controller
             'notificationMessage' => 'nullable|boolean',
             'notificationFollow'  => 'nullable|boolean',
             'notificationLike'    => 'nullable|boolean',
-            'theme'               => 'nullable|string|in:light,dark,system',
+            'theme'               => 'nullable|string|in:light,dark',
             'language'            => 'nullable|string|in:id,en',
         ]);
 

@@ -31,7 +31,7 @@
         @foreach($results['posts'] as $post)
             <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
                 <p>{{ $post->content }}</p>
-                <small>Dibuat oleh: {{ optional($post->user)->name ?? 'User #' . $post->user_id }}</small>
+                <small>Dibuat oleh: {{ optional($post->account)->name ?? 'User #' . $post->account_id }}</small>
             </div>
         @endforeach
     @endif

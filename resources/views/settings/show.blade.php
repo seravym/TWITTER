@@ -209,10 +209,6 @@
                         <input type="radio" name="theme" value="dark" {{ $setting->theme === 'dark' ? 'checked' : '' }}>
                         <span class="theme-icon">🌙</span> Gelap
                     </label>
-                    <label class="theme-pill {{ $setting->theme === 'system' ? 'selected' : '' }}" id="pill-system" onclick="selectTheme('system')">
-                        <input type="radio" name="theme" value="system" {{ $setting->theme === 'system' ? 'checked' : '' }}>
-                        <span class="theme-icon">💻</span> Sistem
-                    </label>
                 </div>
             </div>
 
@@ -361,16 +357,13 @@ function applyTheme(theme) {
     const html = document.getElementById('html-root');
     if (theme === 'dark') {
         html.classList.add('dark-mode');
-    } else if (theme === 'system') {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        html.classList.toggle('dark-mode', prefersDark);
     } else {
         html.classList.remove('dark-mode');
     }
 }
 
 function selectTheme(theme) {
-    ['light','dark','system'].forEach(t => {
+    ['light','dark'].forEach(t => {
         document.getElementById('pill-' + t).classList.toggle('selected', t === theme);
     });
     applyTheme(theme);
