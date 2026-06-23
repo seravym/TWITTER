@@ -35,15 +35,6 @@
 
             <br><br>
 
-            <form action="{{ route('posts.repost', $post) }}" method="POST" style="display:inline;">
-                @csrf
-
-                <button type="submit"
-                    style="color: {{ $post->isRepostedBy(auth()->id()) ? 'green' : 'black' }}">
-                    🔁 {{ $post->reposts->count() }}
-                </button>
-            </form>
-
             {{-- EDIT --}}
             <a href="{{ route('posts.edit', $post) }}">Edit</a>
 

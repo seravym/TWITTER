@@ -8,7 +8,6 @@ use App\Models\Like;
 use App\Models\Hashtag;
 use App\Models\Bookmark;
 use App\Models\CloseFriend;
-use App\Models\Repost;
 
 class Post extends Model
 {
@@ -19,12 +18,10 @@ class Post extends Model
         'media_type',
         'is_pinned',
         'visibility',
-        'archived_at',
     ];
 
     protected $casts = [
         'is_pinned' => 'boolean',
-        'archived_at' => 'datetime',
     ];
 
     public function account()
@@ -42,27 +39,11 @@ class Post extends Model
         return $this->likes()->where('account_id', $accountId)->exists();
     }
 
-    public function reposts()
-    {
-        return $this->hasMany(Repost::class);
-    }
-
-    public function isRepostedBy($accountId)
-    {
-        return $this->reposts()
-            ->where('account_id', $accountId)
-            ->exists();
-    }
-
     public function comments()
     {
         return $this->hasMany(Comment::class);
     }
 
-    public function poll()
-    {
-        return $this->hasOne(Poll::class);
-    }
     /**
      * Relasi many-to-many ke Hashtag melalui pivot hashtag_post
      */
@@ -92,16 +73,6 @@ class Post extends Model
      * - Post public: semua orang boleh lihat
      * - Post close_friend: hanya owner dan yang ada di close friend list owner
      */
-    public function isArchived(): bool
-    {
-        return $this->archived_at !== null;
-    }
-
-    public function reports()
-    {
-        return $this->morphMany(Report::class, 'reportable');
-    }
-
     public function isVisibleTo(?int $viewerId): bool
     {
         if ($this->visibility === 'public') {

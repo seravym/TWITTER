@@ -15,11 +15,6 @@ use App\Http\Controllers\HashtagController;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\CloseFriendController;
 use App\Http\Controllers\MenfessController;
-use App\Http\Controllers\RepostController;
-use App\Http\Controllers\PollController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\ArticleController;
 
 Route::get('/', [PostController::class, 'index'])->middleware('auth');
 
@@ -40,9 +35,6 @@ Route::middleware('auth')->group(function () {
     // --- Fitur Status ---
     Route::post('/accounts/status', [AccountController::class, 'updateStatus'])->name('accounts.status');
 
-    // --- Fitur Report Akun ---
-    Route::post('/accounts/{account}/report', [ReportController::class, 'storeAccount'])->name('reports.accounts.store');
-
     // --- Route Profil ---
     Route::get('/accounts/{account}', [AccountController::class, 'show']);
     Route::get('/accounts/{account}/edit', [AccountController::class, 'edit']);
@@ -54,29 +46,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/stories', [StoryController::class, 'store'])->name('stories.store');
     Route::get('/stories/{account}', [StoryController::class, 'show'])->name('stories.show');
 
-    // --- Route Articles ---
-    Route::resource('articles', ArticleController::class);
-
     // --- Route Posts ---
-    Route::get('/posts/archive', [PostController::class, 'archiveIndex'])->name('posts.archive.index');
-    Route::post('/posts/{post}/archive', [PostController::class, 'archive'])->name('posts.archive');
-    Route::post('/posts/{post}/restore', [PostController::class, 'restore'])->name('posts.restore');
-    Route::get('/posts/{post}/download-media', [PostController::class, 'downloadMedia'])->name('posts.downloadMedia');
-    Route::post('/posts/{post}/report', [ReportController::class, 'storePost'])->name('reports.posts.store');
     Route::resource('posts', PostController::class);
     Route::post('/posts/{post}/like', [LikeController::class, 'toggle'])->name('posts.like');
     Route::post('/posts/{post}/pin', [PostController::class, 'pin'])->name('posts.pin');
-    Route::post('/posts/{post}/repost', [RepostController::class, 'toggle'])->name('posts.repost');
-    
-    // --- Route Polls ---
-    Route::post('/polls/{poll}/vote', [PollController::class, 'vote'])->name('polls.vote')->middleware('auth');
 
     // --- Fitur Komentar ---
     Route::get('/comments', [CommentController::class, 'index']);
     Route::post('/comments', [CommentController::class, 'store']);
     Route::put('/comments/{comment}', [CommentController::class, 'update']);
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
-    Route::post('/comments/{comment}/report', [ReportController::class, 'storeComment'])->name('reports.comments.store');
 
     // --- Fitur Follow & Request System ---
     Route::get('/follows', [FollowController::class, 'index']);
