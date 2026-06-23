@@ -64,4 +64,27 @@ public function register(Request $request)
 
         return redirect('/')->with('success', 'Berhasil logout!');
     }
+
+    public function showForgotPassword()
+    {
+        return view('auth.forgot-password');
+    }
+
+    public function processForgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:accounts,email',
+            'password' => 'required|string|min:8'
+        ], [
+            'email.exists' => 'Email tidak terdaftar di sistem kami.'
+        ]);
+
+        $account = Account::where('email', $request->email)->first();
+        
+        $account->update([
+            'password' => Hash::make($request->password)
+        ]);
+
+        return redirect('/login')->with('success', 'Password berhasil direset! Silakan login dengan password baru.');
+    }
 }
